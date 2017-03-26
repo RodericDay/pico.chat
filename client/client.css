@@ -84,3 +84,7 @@ div#footer a {
 div.clear {
     clear: both;
 }
+
+.hidden {
+    display: none;
+}

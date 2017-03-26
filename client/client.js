@@ -1,26 +1,28 @@
-function createWebSocket(path) {
-    var host = window.location.hostname;
-    if(host == '') host = 'localhost';
-    var uri = 'wss://' + host + '' + path + 'ws/';
-
-    var Socket = "MozWebSocket" in window ? MozWebSocket : WebSocket;
-    return new Socket(uri);
+function createWebSocket() {
+    var protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
+    var host = window.location.hostname || 'localhost';
+    var uri = protocol + host + '/ws/';
+    return new WebSocket(uri);
 }
 
 var users = [];
 
 function refreshUsers() {
-    $('#users').html('');
-    for(i in users) {
-        $('#users').append($(document.createElement('li')).text(users[i]));
+    var userList = document.querySelector("#users");
+    userList.innerHTML = '';
+    for(string of users) {
+        var li = document.createElement("li");
+        li.textContent = string;
+        userList.appendChild(li);
     }
 }
 
 function onMessage(event) {
-    var p = $(document.createElement('p')).text(event.data);
+    var p = document.createElement('p');
+    p.innerHTML = event.data;
 
-    $('#messages').append(p);
-    $('#messages').animate({scrollTop: $('#messages')[0].scrollHeight});
+    messages.appendChild(p);
+    messages.scrollTop = messages.scrollTopMax;
 
     if(event.data.match(/^[^:]* joined/)) {
         var user = event.data.replace(/ .*/, '');
@@ -36,45 +38,46 @@ function onMessage(event) {
     }
 }
 
-$(document).ready(function () {
-    $('#join-form').submit(function () {
-        $('#warnings').html('');
-        var user = $('#user').val();
-        var ws = createWebSocket('/');
+function initialize() {
+    warnings.innerHTML = '';
+    var ws = createWebSocket();
 
-        ws.onopen = function() {
-            ws.send('Hi! I am ' + user);
-        };
+    ws.onopen = function() {
+        warnings.innerHTML = '';
+        ws.send('Hi! I am ' + user.value);
+    };
 
-        ws.onmessage = function(event) {
-            if(event.data.match('^Welcome! Users: ')) {
-                /* Calculate the list of initial users */
-                var str = event.data.replace(/^Welcome! Users: /, '');
-                if(str != "") {
-                    users = str.split(", ");
-                    refreshUsers();
+    ws.onmessage = function(event) {
+        if(event.data.match(/^Welcome! Users: /)) {
+            /* Calculate the list of initial users */
+            users = event.data.replace(/^Welcome! Users: /, '').split(', ');
+            refreshUsers();
+
+            ws.onmessage = onMessage;
+
+            document.querySelector('#join-section').classList.add("hidden");
+            document.querySelector('#chat-section').classList.remove("hidden");
+            document.querySelector('#users-section').classList.remove("hidden");
+
+            document.querySelector('#message-form').onsubmit = function() {
+                if (text.value) {
+                    ws.send(text.value);
+                    text.value = '';
                 }
-
-                $('#join-section').hide();
-                $('#chat-section').show();
-                $('#users-section').show();
-
-                ws.onmessage = onMessage;
-
-                $('#message-form').submit(function () {
-                    var text = $('#text').val();
-                    ws.send(text);
-                    $('#text').val('');
-                    return false;
-                });
-            } else {
-                $('#warnings').append(event.data);
-                ws.close();
+                return false;
             }
-        };
 
-        $('#join').append('Connecting...');
+        } else {
+            warnings.innerHTML = event.data;
+            ws.close();
+        }
+    };
 
-        return false;
-    });
-});
+    warnings.innerHTML = 'Connecting...';
+
+    return false;
+}
+
+window.onload = function() {
+    document.querySelector('#join-form').onsubmit = initialize;
+}
