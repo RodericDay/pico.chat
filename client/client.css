@@ -34,6 +34,10 @@ div#warnings {
     margin: 10px;
 }
 
+div#warnings:before {
+    content: '　';
+}
+
 div#join-section {
     float: left;
     margin: 10px;

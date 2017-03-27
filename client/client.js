@@ -10,7 +10,7 @@ var users = [];
 function refreshUsers() {
     var userList = document.querySelector("#users");
     userList.innerHTML = '';
-    for(string of users) {
+    for(string of users.sort()) {
         var li = document.createElement("li");
         li.textContent = string;
         userList.appendChild(li);
@@ -63,6 +63,7 @@ function initialize() {
                 if (text.value) {
                     ws.send(text.value);
                     text.value = '';
+                    text.focus();
                 }
                 return false;
             }
@@ -80,4 +81,5 @@ function initialize() {
 
 window.onload = function() {
     document.querySelector('#join-form').onsubmit = initialize;
+    initialize();
 }
