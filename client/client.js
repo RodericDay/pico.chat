@@ -18,10 +18,7 @@ function refreshUsers() {
 }
 
 function onMessage(event) {
-    var p = document.createElement('p');
-    p.innerHTML = event.data;
-
-    messages.appendChild(p);
+    addMessage(event.data);
     messages.scrollTop = messages.scrollTopMax;
 
     if(event.data.match(/^[^:]* joined/)) {
@@ -36,6 +33,8 @@ function onMessage(event) {
         users = users.slice(0, idx).concat(users.slice(idx + 1));
         refreshUsers();
     }
+
+    saveHistory();
 }
 
 function initialize() {
@@ -80,6 +79,36 @@ function initialize() {
 }
 
 window.onload = function() {
+    loadHistory();
     document.querySelector('#join-form').onsubmit = initialize;
     initialize();
+}
+
+function addMessage(text, style) {
+    var p = document.createElement('p');
+    p.innerHTML = text;
+    if(style) {
+        p.style = style;
+    }
+    messages.appendChild(p);
+}
+
+function saveHistory() {
+    var messages = [...document.querySelectorAll("p")].map(p=>p.innerHTML);
+    localStorage.setItem("history", JSON.stringify(messages));
+}
+
+function loadHistory() {
+    try {
+        var messages = JSON.parse(localStorage.getItem("history"));
+        if (messages.constructor !== Array) {
+            throw "Could not load history"
+        }
+        for(var text of messages) {
+            addMessage(text, "color: grey;")
+        }
+    }
+    catch(error) {
+        localStorage.setItem("history", JSON.stringify([]));
+    }
 }
