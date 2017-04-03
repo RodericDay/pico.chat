@@ -46,6 +46,12 @@ function initialize() {
         ws.send('Hi! I am ' + user.value);
     };
 
+    ws.onclose = function() {
+        document.querySelector('#join-section').classList.remove("hidden");
+        document.querySelector('#chat-section').classList.add("hidden");
+        document.querySelector('#users-section').classList.add("hidden");
+    }
+
     ws.onmessage = function(event) {
         if(event.data.match(/^Welcome! Users: /)) {
             /* Calculate the list of initial users */
