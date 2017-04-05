@@ -55,15 +55,16 @@ function initialize() {
     var ws = createWebSocket();
 
     ws.onopen = function() {
+        loadHistory();
         warnings.innerHTML = '';
         ws.send('Hi! I am ' + user.value);
     };
 
     ws.onclose = function() {
-        alert("You have been disconnected. Log in again to continue!")
-        // document.querySelector('#join-section').classList.remove("hidden");
-        // document.querySelector('#chat-section').classList.add("hidden");
-        // document.querySelector('#users-section').classList.add("hidden");
+        document.querySelector('#messages').innerHTML = '';
+        users = [];
+        refreshUsers();
+        refreshTitle();
     }
 
     ws.onmessage = function(event) {
@@ -74,18 +75,18 @@ function initialize() {
 
             ws.onmessage = onMessage;
 
-            // document.querySelector('#join-section').classList.add("hidden");
-            // document.querySelector('#chat-section').classList.remove("hidden");
-            // document.querySelector('#users-section').classList.remove("hidden");
+            document.querySelector('input#text').onkeyup = function(event) {
+                unseenCount = -1;
 
-            document.querySelector('#message-form').onsubmit = function() {
-                if (text.value) {
+                if (event.keyCode===13 && text.value) {
                     ws.send(text.value);
                     text.value = '';
                     text.focus();
                 }
-                unseenCount = -1;
-                return false;
+            }
+
+            document.querySelector('button#leave').onclick = function() {
+                ws.close();
             }
 
         } else {
@@ -95,20 +96,16 @@ function initialize() {
     };
 
     warnings.innerHTML = 'Connecting...';
-
-    return false;
 }
 
 window.onload = function() {
-    loadHistory();
-    document.querySelector('#join-form').onsubmit = initialize;
+    document.querySelector('button#join').onclick = initialize;
     if (user.value) { initialize(); }
 }
 
 function addMessage(text, style) {
     var p = document.createElement('p');
     p.textContent = text;
-    // p.innerHTML = p.textContent;
     if(style) {
         p.style = style;
     }

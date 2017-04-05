@@ -34,7 +34,6 @@ div#warnings:after {
 }
 
 div#join-section {
-    max-width: 600px;
     margin: 10px;
 }
 
@@ -65,7 +64,7 @@ div#messages p {
     padding: 2px 0px;
 }
 
-form#message-form {
+#chat-section footer {
     padding: 5px 0px;
 }
 
