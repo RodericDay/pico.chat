@@ -17,9 +17,13 @@ function refreshUsers() {
     }
 }
 
+function refreshTitle() {
+    document.title = 'Chat!';
+}
+
 function onMessage(event) {
     addMessage(event.data);
-    messages.scrollTop = messages.scrollTopMax;
+    messages.scrollTop = messages.scrollHeight;
 
     if(event.data.match(/^[^:]* joined/)) {
         var user = event.data.replace(/ .*/, '');
@@ -47,9 +51,10 @@ function initialize() {
     };
 
     ws.onclose = function() {
-        document.querySelector('#join-section').classList.remove("hidden");
-        document.querySelector('#chat-section').classList.add("hidden");
-        document.querySelector('#users-section').classList.add("hidden");
+        alert("You have been disconnected. Log in again to continue!")
+        // document.querySelector('#join-section').classList.remove("hidden");
+        // document.querySelector('#chat-section').classList.add("hidden");
+        // document.querySelector('#users-section').classList.add("hidden");
     }
 
     ws.onmessage = function(event) {
@@ -60,9 +65,9 @@ function initialize() {
 
             ws.onmessage = onMessage;
 
-            document.querySelector('#join-section').classList.add("hidden");
-            document.querySelector('#chat-section').classList.remove("hidden");
-            document.querySelector('#users-section').classList.remove("hidden");
+            // document.querySelector('#join-section').classList.add("hidden");
+            // document.querySelector('#chat-section').classList.remove("hidden");
+            // document.querySelector('#users-section').classList.remove("hidden");
 
             document.querySelector('#message-form').onsubmit = function() {
                 if (text.value) {
@@ -92,7 +97,8 @@ window.onload = function() {
 
 function addMessage(text, style) {
     var p = document.createElement('p');
-    p.innerHTML = text;
+    p.textContent = text;
+    // p.innerHTML = p.textContent;
     if(style) {
         p.style = style;
     }
@@ -100,7 +106,7 @@ function addMessage(text, style) {
 }
 
 function saveHistory() {
-    var messages = [...document.querySelectorAll("p")].map(p=>p.innerHTML);
+    var messages = [...document.querySelectorAll("p")].map(p=>p.textContent);
     localStorage.setItem("history", JSON.stringify(messages));
 }
 
@@ -110,7 +116,7 @@ function loadHistory() {
         if (messages.constructor !== Array) {
             throw "Could not load history"
         }
-        for(var text of messages) {
+        for(var text of messages.slice(-100)) {
             addMessage(text, "color: grey;")
         }
     }

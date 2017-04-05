@@ -16,27 +16,24 @@
                 <form id="join-form" action="javascript: void(0)">
                     <label for="user">Username: </label>
                     <input id="user" type="text" size="12" />
-                    <input id="welcome" type="submit" value="Join" />
+                    <input type="submit" value="Join" />
+                    <button>Leave</button>
                 </form>
             </div>
-            <div id="users-section" class="hidden">
+            <div id="users-section">
                 <h2>Users</h2>
                 <ul id="users">
                 </ul>
             </div>
-            <div id="chat-section" class="hidden">
+            <div id="chat-section">
                 <h2>Chat</h2>
                 <div id="messages">
                 </div>
-                <br />
                 <form id="message-form" action="javascript: void(0)">
-                    <input id="text" type="text" size="40" autocomplete="off" />
+                    <input id="text" type="text" autocomplete="off" />
                     <input id="talk" type="submit" value="Send" />
                 </form>
             </div>
-        </div>
-        <div id="footer">
-            Based on <a href="http://github.com/jaspervdj/websockets/tree/master/example">jaspervdj</a>'s websocket example.
         </div>
     </body>
 </html>

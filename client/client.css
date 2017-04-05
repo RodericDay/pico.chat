@@ -4,9 +4,6 @@ html {
     font-size: 16px;
 }
 
-body {
-}
-
 h1 {
     text-align: center;
     font-size: 20px;
@@ -21,11 +18,9 @@ h2 {
 }
 
 div#main {
-    width: 600px;
     margin: 0px auto 0px auto;
     padding: 0px;
     background-color: #fff;
-    height: 460px;
 }
 
 div#warnings {
@@ -34,18 +29,17 @@ div#warnings {
     margin: 10px;
 }
 
-div#warnings:before {
+div#warnings:after {
     content: '　';
 }
 
 div#join-section {
-    float: left;
+    max-width: 600px;
     margin: 10px;
 }
 
 div#users-section {
-    width: 170px;
-    float: right;
+    /*float: right;*/
     padding: 0px;
     margin: 10px;
 }
@@ -53,25 +47,26 @@ div#users-section {
 ul#users {
     list-style-type: none;
     padding-left: 0px;
-    height: 300px;
     overflow: auto;
 }
 
 div#chat-section {
-    width: 390px;
-    float: left;
     margin: 10px;
 }
 
 div#messages {
-    margin: 0px;
     height: 300px;
+    margin: 0px;
     overflow: auto;
 }
 
 div#messages p {
     margin: 0px;
-    padding: 0px;
+    padding: 2px 0px;
+}
+
+form#message-form {
+    padding: 5px 0px;
 }
 
 div#footer {
