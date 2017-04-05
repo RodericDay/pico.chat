@@ -6,6 +6,7 @@ function createWebSocket() {
 }
 
 var users = [];
+var unseenCount = 0;
 
 function refreshUsers() {
     var userList = document.querySelector("#users");
@@ -19,6 +20,9 @@ function refreshUsers() {
 
 function refreshTitle() {
     document.title = 'Chat!';
+    if(unseenCount) {
+        document.title += ' (' + unseenCount +')';
+    }
 }
 
 function onMessage(event) {
@@ -31,11 +35,16 @@ function onMessage(event) {
         refreshUsers();
     }
 
-    if(event.data.match(/^[^:]* disconnected/)) {
+    else if(event.data.match(/^[^:]* disconnected/)) {
         var user = event.data.replace(/ .*/, '');
         var idx = users.indexOf(user);
         users = users.slice(0, idx).concat(users.slice(idx + 1));
         refreshUsers();
+    }
+
+    else {
+        unseenCount += 1;
+        refreshTitle();
     }
 
     saveHistory();
@@ -75,6 +84,7 @@ function initialize() {
                     text.value = '';
                     text.focus();
                 }
+                unseenCount = -1;
                 return false;
             }
 
