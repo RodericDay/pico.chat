@@ -17,9 +17,16 @@ h2 {
     font-size: 18px;
 }
 
+input {
+    width: 50%;
+    display: block;
+    margin: 5px 0px;
+}
+
 div#main {
+    max-width: 600px;
     margin: 0px auto 0px auto;
-    padding: 0px;
+    padding: 5px 0px;
     background-color: #fff;
 }
 
@@ -34,11 +41,14 @@ div#warnings:after {
 }
 
 div#join-section {
+    display: inline-block;
+    width: 50%;
     margin: 10px;
 }
 
 div#users-section {
-    /*float: right;*/
+    float: right;
+    width: 30%;
     padding: 0px;
     margin: 10px;
 }
@@ -50,6 +60,7 @@ ul#users {
 }
 
 div#chat-section {
+    display: block;
     margin: 10px;
 }
 
@@ -62,10 +73,6 @@ div#messages {
 div#messages p {
     margin: 0px;
     padding: 2px 0px;
-}
-
-#chat-section footer {
-    padding: 5px 0px;
 }
 
 div#footer {
