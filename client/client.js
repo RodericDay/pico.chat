@@ -102,7 +102,7 @@ function initialize() {
 window.onload = function() {
     loadHistory();
     document.querySelector('#join-form').onsubmit = initialize;
-    initialize();
+    if (user.value) { initialize(); }
 }
 
 function addMessage(text, style) {
