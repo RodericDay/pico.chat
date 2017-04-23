@@ -14,6 +14,7 @@ function refreshUsers() {
     for(string of users.sort()) {
         var li = document.createElement("li");
         li.textContent = string;
+        li.onclick = handleUsernameClick;
         userList.appendChild(li);
     }
 }
@@ -26,33 +27,46 @@ function refreshTitle() {
 }
 
 function onMessage(event) {
-    addMessage(event.data);
-    messages.scrollTop = messages.scrollHeight;
+
+    var components = event.data.split(': ');
+    var sender = components.shift();
+    var data = components.join(': ');
 
     if(event.data.match(/^[^:]* joined/)) {
-        var user = event.data.replace(/ .*/, '');
-        users.push(user);
+        var name = event.data.replace(/ .*/, '');
+        users.push(name);
         refreshUsers();
     }
 
     else if(event.data.match(/^[^:]* disconnected/)) {
-        var user = event.data.replace(/ .*/, '');
-        var idx = users.indexOf(user);
-        users = users.slice(0, idx).concat(users.slice(idx + 1));
+        var name = event.data.replace(/ .*/, '');
+        var idx = users.indexOf(name);
+        users.splice(idx, 1);
         refreshUsers();
     }
 
     else {
-        unseenCount += 1;
-        refreshTitle();
+        var message = JSON.parse(data);
+        if(message.target==='all' && message.text) {
+            addMessage(sender + ': ' + message.text);
+            unseenCount += 1;
+            refreshTitle();
+        }
+        else if(message.target===user.value) {
+            message.sender = sender;
+            handleCustomMessage(message);
+        }
     }
 
+    messages.scrollTop = messages.scrollHeight;
     saveHistory();
 }
 
 function initialize() {
     warnings.innerHTML = '';
-    var ws = createWebSocket();
+
+    // IT SHOULD BE VERY CLEAR WE ARE ASSIGNING A GLOBAL VARIABLE!!!
+    ws = createWebSocket();
 
     ws.onopen = function() {
         loadHistory();
@@ -79,7 +93,7 @@ function initialize() {
                 unseenCount = -1;
 
                 if (event.keyCode===13 && text.value) {
-                    ws.send(text.value);
+                    ws.send(JSON.stringify({target: "all", text: text.value}));
                     text.value = '';
                     text.focus();
                 }
@@ -130,4 +144,14 @@ function loadHistory() {
     catch(error) {
         localStorage.setItem("history", JSON.stringify([]));
     }
+}
+
+function handleUsernameClick() {
+    console.log("Clicked on " + this.textContent + "!");
+    console.log("Override `wsUserClick` to implement extra features.");
+}
+
+function handleCustomMessage(message) {
+    console.log("received an unhandled private message!");
+    console.log("Override `handleCustomMessage` to implement extra features.");
 }
