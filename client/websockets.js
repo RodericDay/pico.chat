@@ -2,156 +2,70 @@ function createWebSocket() {
     var protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
     var host = window.location.hostname || 'localhost';
     var uri = protocol + host + '/ws/';
-    return new WebSocket(uri);
+    var ws = new WebSocket(uri);
+    ws.onopen = onOpen;
+    ws.onclose = onClose;
+    ws.onmessage = onMessage;
+    return ws
 }
 
-var users = [];
-var unseenCount = 0;
-
-function refreshUsers() {
-    var userList = document.querySelector("#users");
-    userList.innerHTML = '';
-    for(string of users.sort()) {
-        var li = document.createElement("li");
-        li.textContent = string;
-        li.onclick = handleUsernameClick;
-        userList.appendChild(li);
-    }
+function onOpen(event) {
+    ws.send('Hi! I am ' + uid);
+    updateUi();
 }
 
-function refreshTitle() {
-    document.title = 'Chat!';
-    if(unseenCount) {
-        document.title += ' (' + unseenCount +')';
-    }
+function onClose(event) {
+    messages.push({type: "info", sender: "server", text: "logout"});
+    updateUi();
 }
 
 function onMessage(event) {
-
     var components = event.data.split(': ');
     var sender = components.shift();
     var data = components.join(': ');
+    try {
+        var message = JSON.parse(data);
+        message.sender = sender;
+    }
+    catch(error) {
+    }
 
-    if(event.data.match(/^[^:]* joined/)) {
+    if(sender === 'Welcome! Users') {
+        users = new Set([...users, ...data.split(',')]);
+        users.delete("");
+        messages.push({type: "info", sender: "server", text: "login"});
+    }
+
+    else if(event.data.match(/^[^:]* joined/)) {
         var name = event.data.replace(/ .*/, '');
-        users.push(name);
-        refreshUsers();
+        users.add(name);
+        messages.push({type: "info", sender: name, text: "connect"});
+
     }
 
     else if(event.data.match(/^[^:]* disconnected/)) {
         var name = event.data.replace(/ .*/, '');
-        var idx = users.indexOf(name);
-        users.splice(idx, 1);
-        refreshUsers();
+        users.delete(name);
+        messages.push({type: "info", sender: name, text: "disconnect"});
+    }
+
+    else if(message) {
+        messages.push(message);
     }
 
     else {
-        var message = JSON.parse(data);
-        if(message.target==='all' && message.text) {
-            addMessage(sender + ': ' + message.text);
-            unseenCount += 1;
-            refreshTitle();
-        }
-        else if(message.target===user.value) {
-            message.sender = sender;
-            handleCustomMessage(message);
-        }
+        messages.push({type: "error", sender: "system", text: event.data});
     }
 
-    messages.scrollTop = messages.scrollHeight;
-    saveHistory();
+    updateUi(messages[messages.length-1]);
 }
 
-function initialize() {
-    warnings.innerHTML = '';
-
-    // IT SHOULD BE VERY CLEAR WE ARE ASSIGNING A GLOBAL VARIABLE!!!
-    ws = createWebSocket();
-
-    ws.onopen = function() {
-        loadHistory();
-        warnings.innerHTML = '';
-        ws.send('Hi! I am ' + user.value);
-    };
-
-    ws.onclose = function() {
-        document.querySelector('#messages').innerHTML = '';
-        users = [];
-        refreshUsers();
-        refreshTitle();
-    }
-
-    ws.onmessage = function(event) {
-        if(event.data.match(/^Welcome! Users: /)) {
-            /* Calculate the list of initial users */
-            users = event.data.replace(/^Welcome! Users: /, '').split(', ');
-            refreshUsers();
-
-            ws.onmessage = onMessage;
-
-            document.querySelector('input#text').onkeyup = function(event) {
-                unseenCount = -1;
-
-                if (event.keyCode===13 && text.value) {
-                    ws.send(JSON.stringify({target: "all", text: text.value}));
-                    text.value = '';
-                    text.focus();
-                }
-            }
-
-            document.querySelector('button#leave').onclick = function() {
-                ws.close();
-            }
-
-        } else {
-            warnings.innerHTML = event.data;
-            ws.close();
-        }
-    };
-
-    warnings.innerHTML = 'Connecting...';
+function updateUi(lastMessage) {
+    console.log(lastMessage);
+    console.log("Implement a function to handle updates!");
 }
 
-window.onload = function() {
-    document.querySelector('button#join').onclick = initialize;
-    if (user.value) { initialize(); }
-}
-
-function addMessage(text, style) {
-    var p = document.createElement('p');
-    p.textContent = text;
-    if(style) {
-        p.style = style;
-    }
-    messages.appendChild(p);
-}
-
-function saveHistory() {
-    var messages = [...document.querySelectorAll("p")].map(p=>p.textContent);
-    localStorage.setItem("history", JSON.stringify(messages));
-}
-
-function loadHistory() {
-    try {
-        var messages = JSON.parse(localStorage.getItem("history"));
-        if (messages.constructor !== Array) {
-            throw "Could not load history"
-        }
-        for(var text of messages.slice(-100)) {
-            addMessage(text, "color: grey;")
-        }
-    }
-    catch(error) {
-        localStorage.setItem("history", JSON.stringify([]));
-    }
-}
-
-function handleUsernameClick() {
-    console.log("Clicked on " + this.textContent + "!");
-    console.log("Override `wsUserClick` to implement extra features.");
-}
-
-function handleCustomMessage(message) {
-    console.log("received an unhandled private message!");
-    console.log("Override `handleCustomMessage` to implement extra features.");
-}
+var uid = Math.random().toFixed(16).slice(2, 8);
+var users = new Set();
+var messages = [];
+var ws = createWebSocket();

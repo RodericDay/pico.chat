@@ -1,0 +1,71 @@
+html {
+    font-family: sans-serif;
+    background-color: #335;
+    font-size: 16px;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+#main {
+    position: relative;
+    max-width: 600px;
+    margin: 0px auto;
+}
+
+#chat-log {
+    position: absolute;
+    background-color: white;
+
+    left: 5px;
+    top: 5px;
+
+    width: calc(100% - 15px - 100px);
+    height: 18vh;
+
+    overflow: auto;
+}
+
+#user-panel {
+    position: absolute;
+    background-color: white;
+
+    right: 5px;
+    top: 5px;
+
+    width: 100px;
+    height: 18vh;
+
+    overflow: auto;
+}
+
+#input-field {
+    position: absolute;
+    font-size: 16px;
+
+    left: 5px;
+    top: calc(18vh + 10px);
+
+    width: calc(100% - 10px);
+
+    border: none;
+    resize: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    -webkit-appearance: none;
+}
+
+#chat-log > div {
+    margin: 0px;
+    padding: 2px 5px;
+}
+
+#user-panel > button {
+    width: 100%;
+}
+

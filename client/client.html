@@ -3,79 +3,18 @@
     <head>
         <title>Chat!</title>
         <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no" />
-        <script type="text/JavaScript" src="websockets.js"></script>
-
+        <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no"/>
+        <script src="https://unpkg.com/mithril/mithril.js"></script>
         <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-        <script type="text/JavaScript" src="webrtc.js"></script>
-        <script>
-        function handleUsernameClick() {
 
-            var localAgentName = user.value;
-            var remoteAgentName = this.textContent;
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <script src="websockets.js"></script>
+        <script src="webrtc.js"></script>
+        <script src="ui.js"></script>
 
-            if(localAgentName===remoteAgentName) {
-                console.log("You cannot call yourself!");
-                return
-            }
-
-            else {
-                connect(ws, remoteAgentName, {type: 'new'});
-            }
-
-        }
-
-        function handleCustomMessage(message) {
-
-            if(message.sdp!==undefined) {
-                connect(ws, message.sender, message);
-            }
-
-            else {
-                console.log("unknown format:", message);
-            }
-
-        }
-        </script>
-
-        <link rel="stylesheet" type="text/css" href="client.css" />
     </head>
     <body>
-        <div id="videos" style="position:fixed;top:0;left:0;"></div>
-        <div id="main">
-            <div id="warnings">
-            </div>
-            <div id="join-section">
-                <h2>Join</h2>
-                <input id="user" type="text" placeholder="What's your alias?"/>
-                <button id="join">Join</button>
-                <button id="leave">Leave</button>
-            </div>
-            <div id="users-section">
-                <h2>Users</h2>
-                <ul id="users">
-                </ul>
-            </div>
-            <div id="chat-section">
-                <h2>Chat</h2>
-                <div id="messages">
-                </div>
-                <input id="text" autocomplete="off" />
-            </div>
-        </div>
-
-        <details>
-        <summary>Todo</summary>
-        <ul>
-            <li>Quit/reload/cleanup more gracefully</li>
-            <li>Draggable windows</li>
-            <li>More styled and informational windows</li>
-            <li>Better auto-login (work on chrome?)</li>
-            <li>Figure out why smoother w/ chrome</li>
-            <li>Plug in card game</li>
-            <li>Plug in file transfer</li>
-        </ul>
-        </details>
-
+        <div id="main"></div>
+        <div id="streams"></div>
     </body>
 </html>
