@@ -12,6 +12,14 @@ function getRPC(emitter, remoteAgentName) {
             if(['closed', 'disconnected'].includes(rpc.iceConnectionState)) {
                 delete myRPCs[remoteAgentName];
                 delete myStreams[remoteAgentName];
+
+                var left = Object.keys(myStreams);
+                if(left.length === 1 && left[0] === uid) {
+                    myStreams[uid].getTracks().forEach(track=>track.stop());
+                    delete myRPCs[uid];
+                    delete myStreams[uid];
+                }
+
                 updateUi();
             }
         }

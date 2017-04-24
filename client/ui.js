@@ -4,22 +4,25 @@ function updateUi(lastMessage) {
         connect(ws, lastMessage.sender, lastMessage);
     }
 
-    var chatLog = m("div#chat-log", messages.map(e=>m("div", e.sender + ': ' + e.text)));
+    var chatLog = m("div#chat-log", messages
+            .filter(e=>e.type==='message')
+            .map(e=>m("div", e.sender + ': ' + e.text))
+        );
 
     var inputField = m("input#input-field", {onkeyup: sendMessage});
 
     var userPanel = m("div#user-panel", [...users]
-            .filter(u=>u!=uid)
             .sort()
             .map(makeButton)
         );
 
-    var videoStreams = Object.keys(myStreams)
-        .sort()
-        .map(u=>m("div", [
-                m("button", {disabled: u==uid, onclick: ()=>hang(u)}, u),
-                m("video", {srcObject: myStreams[u], autoplay: true, muted: u==uid}),
-            ])
+    var videoStreams = m("div.videoContainerContainer", Object.keys(myStreams)
+            .sort()
+            .map((u,i)=>m("div.videoContainer", [
+                    m("video", {srcObject: myStreams[u], autoplay: true, muted: u==uid}),
+                    m("button", {disabled: u==uid, onclick: ()=>hang(u)}, u),
+                ])
+            )
         );
 
     m.render(main, [chatLog, userPanel, inputField, videoStreams]);
@@ -29,11 +32,12 @@ function updateUi(lastMessage) {
 }
 
 function makeButton(username) {
+    var active = Object.keys(myStreams).includes(username);
     var attrs = {
-        disabled: Object.keys(myStreams).includes(username),
-        onclick: ()=>call(username)
+        disabled: username===uid,
+        onclick: ()=>active?hang(username):call(username),
     }
-    return m("button", attrs, username)
+    return m("button", attrs, username + (username===uid?' (you)':''))
 }
 
 function call(remoteUid) {

@@ -11,6 +11,16 @@ body {
     margin: 0;
 }
 
+input, button {
+    border: none;
+    resize: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    -webkit-appearance: none;
+}
+
+
 #main {
     position: relative;
     max-width: 600px;
@@ -51,14 +61,8 @@ body {
     top: calc(18vh + 10px);
 
     width: calc(100% - 10px);
-
-    border: none;
-    resize: none;
-    margin: 0;
-    padding: 0;
-    border-radius: 0;
-    -webkit-appearance: none;
 }
+
 
 #chat-log > div {
     margin: 0px;
@@ -66,6 +70,30 @@ body {
 }
 
 #user-panel > button {
+    text-align: left;
     width: 100%;
 }
 
+
+.videoContainerContainer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: 100px;
+    width: 100%;
+}
+
+.videoContainer {
+    position: relative;
+    display: inline-block;
+}
+
+.videoContainer button {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.videoContainer video {
+    height: 100px;
+}
