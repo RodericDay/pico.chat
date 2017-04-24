@@ -6,7 +6,7 @@ function updateUi(lastMessage) {
 
     var chatLog = m("div#chat-log", messages
             .filter(e=>e.type==='message')
-            .map(e=>m("div", e.sender + ': ' + e.text))
+            .map(e=>m.trust(marked(e.sender + ': ' + e.text)))
         );
 
     var inputField = m("input#input-field", {onkeyup: sendMessage});

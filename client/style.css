@@ -64,7 +64,7 @@ input, button {
 }
 
 
-#chat-log > div {
+#chat-log > p {
     margin: 0px;
     padding: 2px 5px;
 }
