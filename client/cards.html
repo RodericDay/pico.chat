@@ -5,16 +5,11 @@
 html {
     background-color: green;
 }
-.card:before {
-    content: attr(id);
-    display: block;
-    text-align: center;
-}
 .card {
     width: 40px;
     height: 60px;
-    background-color: white;
     outline: 1px solid black;
+    background-color: grey;
 }
 .selected {
     outline: 2px solid yellow;
@@ -23,6 +18,14 @@ html {
     background-color: blue;
     opacity: 0.5;
     z-index: 999999;
+}
+.faceup {
+    background-color: white;
+}
+.faceup:before {
+    content: attr(id);
+    display: block;
+    /*text-align: center;*/
 }
 </style>
 
@@ -53,6 +56,8 @@ window.onkeyup = function(event) {
         if (event.key === 'ArrowDown') { selected.forEach(card=>card.y+=1) }
         if (event.key === 's') { selected.forEach(function(card){card.x=minX;card.y=minY;}) }
         if (event.key === 'a') { getCards().forEach(card=>card.div.classList.add("selected")) }
+        if (event.key === 'f') { selected.forEach(card=>card.div.classList.toggle("faceup")) }
+        if (event.key === '5') { selected.slice(0,-5).forEach(card=>card.div.classList.remove("selected")) }
     }
 
 }
@@ -150,7 +155,9 @@ function createCard(id) {
     card.div.id = id
     card.div.style.position = "absolute";
     card.div.classList.add("card");
+    card.div.classList.add("faceup");
     card.div.card = card;
+    card.div.ondblclick = () => card.div.classList.toggle("faceup");
     document.body.appendChild(card.div);
     return card
 }
