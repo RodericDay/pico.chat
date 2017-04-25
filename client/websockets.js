@@ -67,9 +67,6 @@ function updateUi(lastMessage) {
 }
 
 var uid = Math.random().toFixed(16).slice(2, 8);
-if(window.location.hash !== "#debug") {
-    uid = "" + window.prompt("Provide an alias, or use random default.", uid);
-}
 var users = new Set();
 var messages = [];
 var ws = createWebSocket();

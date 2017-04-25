@@ -25,7 +25,8 @@ function updateUi(lastMessage) {
             )
         );
 
-    m.render(main, [chatLog, userPanel, inputField, videoStreams]);
+    m.render(main, [chatLog, userPanel, inputField]);
+    m.render(streams, videoStreams);
 
     var scrollable = document.querySelector('#chat-log');
     scrollable.scrollTop = scrollable.scrollHeight;
@@ -57,4 +58,7 @@ function sendMessage(event) {
     }
 }
 
+if(window.location.hash !== "#debug") {
+    uid = "" + window.prompt("Provide an alias, or use random default.", uid);
+}
 window.onload = updateUi;

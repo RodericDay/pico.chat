@@ -8,7 +8,7 @@ function getRPC(emitter, remoteAgentName) {
         var rpc = new RTCPeerConnection(servers);
         rpc.pending = true;
         rpc.oniceconnectionstatechange = function(e) {
-            console.log(rpc.iceConnectionState);
+            console.log(`(${remoteAgentName}) ${rpc.iceConnectionState}`);
             if(['closed', 'disconnected'].includes(rpc.iceConnectionState)) {
                 delete myRPCs[remoteAgentName];
                 delete myStreams[remoteAgentName];
@@ -42,7 +42,7 @@ function connect(emitter, remoteAgentName, message) {
     var rpc = getRPC(emitter, remoteAgentName);
 
     if(message.type==='request') {
-        console.log("requesting for ", remoteAgentName);
+        console.log(`(${remoteAgentName}) requesting`);
         rpc.createOffer()
             .then(offer=>rpc.setLocalDescription(offer))
             .catch(error=>console.log(error));
@@ -50,14 +50,14 @@ function connect(emitter, remoteAgentName, message) {
 
     else if(message.type==='offer') {
         rpc.setRemoteDescription(new RTCSessionDescription(message));
-        console.log("connecting to ", remoteAgentName);
+        console.log(`(${remoteAgentName}) connecting`);
         rpc.createAnswer()
             .then(answer=>rpc.setLocalDescription(answer))
             .catch(error=>console.log(error));
     }
 
     else if(message.type==='answer') {
-        console.log("connecting to ", remoteAgentName);
+        console.log(`(${remoteAgentName}) connecting`);
         rpc.setRemoteDescription(new RTCSessionDescription(message))
             .catch(error=>console.log(error));
     }
