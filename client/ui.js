@@ -15,8 +15,10 @@ function updateUi(lastMessage) {
         m("video", { srcObject: myStreams[u], autoplay: true, muted: u == uid }),
         m("button", { disabled: u == uid, onclick: () => hang(u) }, u),
     ])));
-    m.render(main, [chatLog, userPanel, inputField]);
-    m.render(streams, videoStreams);
+    if (lastMessage.type === "stream") {
+        m.render(document.getElementById("streams"), videoStreams);
+    }
+    m.render(document.getElementById("main"), [chatLog, userPanel, inputField]);
     var scrollable = document.querySelector('#chat-log');
     scrollable.scrollTop = scrollable.scrollHeight;
 }
@@ -42,9 +44,9 @@ function sendMessage(event) {
         this.value = '';
     }
 }
-var main = document.getElementById("main");
-var streams = document.getElementById("main");
-if (window.location.hash !== "#debug") {
-    uid = "" + window.prompt("Provide an alias, or use random default.", uid);
-}
-window.onload = updateUi;
+window.onload = function () {
+    if (window.location.hash !== "#debug") {
+        uid = "" + window.prompt("Provide an alias, or use random default.", uid);
+    }
+    updateUi({});
+};

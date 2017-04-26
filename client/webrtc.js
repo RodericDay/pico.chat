@@ -16,7 +16,7 @@ function getRPC(emitter, remoteAgentName) {
                     delete myRPCs[uid];
                     delete myStreams[uid];
                 }
-                updateUi({});
+                updateUi({ type: "stream" });
             }
         };
         rpc.onicecandidate = e => onIceCandidate(rpc, emitter, remoteAgentName);
@@ -62,7 +62,7 @@ function createMyStream() {
 }
 function setupStream(stream, agentName) {
     myStreams[agentName] = stream;
-    updateUi({});
+    updateUi({ type: "stream" });
 }
 function onIceCandidate(rpc, emitter, remoteAgentName) {
     if (rpc.iceGatheringState === 'complete') {
