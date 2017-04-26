@@ -27,7 +27,9 @@ style.innerHTML = `
 `
 
 function cardsKeyUp(event) {
-    var selected = getCards("selected");
+    if(event.target !== document.body) return;
+
+    var selected = getCards("selected").sort(compareZIndex).reverse();
     var minimize = (a,b) => Math.min(a,b);
 
     var minX = selected.map(card=>card.x).reduce(minimize, 9999);
@@ -53,6 +55,7 @@ function cardsKeyUp(event) {
         if (event.key === '5') { selected.slice(0,-5).forEach(card=>card.div.classList.remove("selected")) }
     }
 
+    cardsBroadcast();
 }
 
 function pointerMove(event) {
@@ -98,6 +101,8 @@ function pointerDown(event) {
 }
 
 function pointerUp(event) {
+    cardsBroadcast(); // needs to be done befor deselection
+
     var cards = getCards("card");
     cards.forEach(card=>card.div.classList.remove("selected"));
 
@@ -135,6 +140,7 @@ function createCard(id) {
         get x() { return this.div.getBoundingClientRect().left },
         get y() { return this.div.getBoundingClientRect().top },
         get z() { return +this.div.style.zIndex },
+        get json() { return {id: id, x:this.x, y:this.y, z:this.z, face: this.face} },
         set x(i:number) { this.div.style.left = i + "px" },
         set y(i:number) { this.div.style.top = i + "px" },
         set z(i:number) { this.div.style.zIndex = i },

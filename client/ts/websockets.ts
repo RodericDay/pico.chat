@@ -60,13 +60,3 @@ function onMessage(event) {
 
     updateUi(messages[messages.length-1]);
 }
-
-// function updateUi(lastMessage) {
-//     console.log(lastMessage);
-//     console.log("Implement a function to handle updates!");
-// }
-
-var uid = Math.random().toFixed(16).slice(2, 8);
-var users = new Set();
-var messages = [];
-var ws = createWebSocket();

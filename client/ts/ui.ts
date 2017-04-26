@@ -29,6 +29,10 @@ function updateUi(lastMessage) {
         m.render(document.getElementById("streams"), videoStreams);
     }
 
+    if(lastMessage.type === "cards") {
+        cardsReceive(lastMessage);
+    }
+
     m.render(document.getElementById("main"), [chatLog, userPanel, inputField]);
     var scrollable = document.querySelector('#chat-log');
     scrollable.scrollTop = scrollable.scrollHeight;
@@ -43,6 +47,7 @@ function makeButton(username) {
     }
     return m("button", attrs, username + (username===uid?' (you)':''))
 }
+
 
 function call(remoteUid) {
     connect(ws, remoteUid, {type: 'request'});
@@ -61,9 +66,29 @@ function sendMessage(event) {
     }
 }
 
+
+function cardsBroadcast() {
+    var moves = getCards("selected").map(card=>card.json);
+    ws.send(JSON.stringify({type:"cards", moves: moves}));
+}
+
+function cardsReceive(message) {
+    for(var info of message.moves) {
+        var card = document.getElementById(info.id)["card"];
+        card.x = info.x;
+        card.y = info.y;
+        card.z = info.z;
+    }
+}
+
+var uid = Math.random().toFixed(16).slice(2, 8);
+var users = new Set();
+var messages = [];
+var ws = null;
 window.onload = function() {
     if(window.location.hash !== "#debug") {
         uid = "" + window.prompt("Provide an alias, or use random default.", uid);
     }
+    ws = createWebSocket();
     updateUi({});
 }
