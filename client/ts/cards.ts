@@ -55,7 +55,7 @@ function cardsKeyUp(event) {
 
 }
 
-window.onmousemove = function(event) {
+function pointerMove(event) {
     if (event.buttons !== 1) return;
 
     var X = event.clientX;
@@ -67,15 +67,15 @@ window.onmousemove = function(event) {
     }
 
     if (isSelecting) {
-        selectArea.style.left = "" + (X < lastX ? X : lastX);
-        selectArea.style.top = "" + (Y < lastY ? Y : lastY);
-        selectArea.style.width = "" + (Math.abs(X - lastX));
-        selectArea.style.height = "" + (Math.abs(Y - lastY));
+        selectArea.style.left = (X < lastX ? X : lastX) + "px";
+        selectArea.style.top = (Y < lastY ? Y : lastY) + "px";
+        selectArea.style.width = (Math.abs(X - lastX)) + "px";
+        selectArea.style.height = (Math.abs(Y - lastY)) + "px";
     }
 
 }
 
-window.onmousedown = function(event) {
+function pointerDown(event) {
     var card = event.target["card"];
     lastX = event.clientX;
     lastY = event.clientY;
@@ -97,7 +97,7 @@ window.onmousedown = function(event) {
     }
 }
 
-window.onmouseup = function(event) {
+function pointerUp(event) {
     var cards = getCards("card");
     cards.forEach(card=>card.div.classList.remove("selected"));
 
@@ -164,8 +164,8 @@ function cardsLoad() {
         var suit = i/13|0;
         var rank = i%13;
         var card = createCard('A23456789TJQK'[rank] + '♠♥♣♦'[suit]);
-        card.x = 25 + rank * 25;
-        card.y = 200 + suit * 40;
+        card.x = 25 + rank * (25 + 3);
+        card.y = 200 + suit * (40 + 3);
         card.z = ++lastZ;
         card.color = ["black","red"][suit%2];
     }
@@ -179,3 +179,11 @@ var lastZ = 100;
 
 window.addEventListener("load", cardsLoad);
 window.addEventListener("keyup", cardsKeyUp);
+
+window.addEventListener("mouseup", pointerUp);
+window.addEventListener("mousedown", pointerDown);
+window.addEventListener("mousemove", pointerMove);
+
+window.addEventListener("touchstart", pointerDown);
+window.addEventListener("touchend", pointerUp);
+window.addEventListener("touchmove", pointerMove);
