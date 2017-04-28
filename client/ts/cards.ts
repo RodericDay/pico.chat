@@ -9,7 +9,7 @@ style.innerHTML = `
         background-color: grey;
     }
     .selected {
-        outline: 2px solid yellow;
+        outline: 1px solid yellow;
     }
     .select-area {
         background-color: blue;
@@ -22,6 +22,7 @@ style.innerHTML = `
     .faceup:before {
         font-size: 0.7em;
         content: attr(id);
+        pointer-events: none;
         display: block;
     }
 `
@@ -59,10 +60,12 @@ function cardsKeyUp(event) {
 }
 
 function pointerMove(event) {
-    if (event.buttons !== 1) return;
+    event.preventDefault();
 
-    var X = event.clientX;
-    var Y = event.clientY;
+    if(event.buttons === 0) return;
+
+    var X = event.pageX;
+    var Y = event.pageY;
 
     for (var card of getCards("selected")) {
         card.x = X - card.offsetX;
@@ -80,8 +83,8 @@ function pointerMove(event) {
 
 function pointerDown(event) {
     var card = event.target["card"];
-    lastX = event.clientX;
-    lastY = event.clientY;
+    lastX = event.pageX;
+    lastY = event.pageY;
 
     if (card) {
         card.div.classList.add("selected");
