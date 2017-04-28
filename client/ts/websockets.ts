@@ -30,10 +30,14 @@ function onMessage(event) {
     catch(error) {
     }
 
-    if(sender === 'Welcome! Users') {
+    if(event.data.match(/^Welcome!.*/)) {
         users = new Set([...users, ...data.split(',')]);
         users.delete("");
         messages.push({type: "info", sender: "server", text: "login"});
+        messages.push({type: "message", sender: "server", text: `Welcome ${uid}!`});
+        messages.push({type: "message", sender: "server", text: "Click [here](https://chat.roderic.ca/?) to change your username."});
+        messages.push({type: "message", sender: "server", text: "Click on a username to start a video call."});
+        messages.push({type: "message", sender: "server", text: "Click again to hang up."});
     }
 
     else if(event.data.match(/^[^:]* joined/)) {
@@ -49,13 +53,13 @@ function onMessage(event) {
         messages.push({type: "info", sender: name, text: "disconnect"});
     }
 
-    else if(message) {
-        messages.push(message);
+    else if(event.data.match(/^User already exists/)) {
+        newUid(uid, `<${uid}> taken! Try a different alias:`);
+        return
     }
 
     else {
-        alert(event.data + '. Refresh page to try again.');
-        messages.push({type: "error", sender: "system", text: event.data});
+        messages.push(message);
     }
 
     updateUi(messages[messages.length-1]);

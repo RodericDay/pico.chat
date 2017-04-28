@@ -81,14 +81,22 @@ function cardsReceive(message) {
     }
 }
 
-var uid = Math.random().toFixed(16).slice(2, 8);
+function newUid(uid, message="Choose an alias:") {
+    var random = Math.random().toFixed(16).slice(2, 8);
+    localStorage.uid = window.prompt(message) || random;
+    location.replace(location.origin); // refresh page
+}
+
+var uid = localStorage.uid;
 var users = new Set();
 var messages = [];
 var ws = null;
 window.onload = function() {
-    if(window.location.hash !== "#debug") {
-        uid = "" + window.prompt("Provide an alias, or use random default.", uid);
+    if(location.href.includes('?')) {
+        newUid(uid);
     }
-    ws = createWebSocket();
-    updateUi({});
+    else {
+        ws = createWebSocket();
+        updateUi({});
+    }
 }
