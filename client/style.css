@@ -43,7 +43,6 @@ input, button {
     width: calc(100% - 15px - 100px);
     height: calc(100% - 20px - 15px);
 
-    font-size: 12px;
     overflow: auto;
 }
 
@@ -81,6 +80,7 @@ input, button {
 
 #user-panel > button {
     text-align: left;
+    background-color: #eee;
     width: 100%;
 }
 

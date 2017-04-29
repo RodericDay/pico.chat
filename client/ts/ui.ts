@@ -4,9 +4,10 @@ function updateUi(lastMessage) {
         connect(ws, lastMessage.sender, lastMessage);
     }
 
+    var prefix = string => (string==='server'?'':`${string}: `);
     var chatMessages = messages.filter(e=>e.type==='message');
     var chatLog = m("div#chat-log", chatMessages
-            .map(e=>m.trust(marked(e.sender + ': ' + e.text)))
+            .map(e=>m.trust(marked(prefix(e.sender) + e.text)))
         );
 
     var inputField = m("input#input-field", {onkeyup: sendMessage});

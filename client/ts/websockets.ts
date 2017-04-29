@@ -35,8 +35,8 @@ function onMessage(event) {
         users.delete("");
         messages.push({type: "info", sender: "server", text: "login"});
         messages.push({type: "message", sender: "server", text: `Welcome ${uid}!`});
-        messages.push({type: "message", sender: "server", text: "Click [here](https://chat.roderic.ca/?) to change your username."});
-        messages.push({type: "message", sender: "server", text: "Click on a username to start a video call."});
+        messages.push({type: "message", sender: "server", text: "Click [here](https://chat.roderic.ca/?) to change your alias."});
+        messages.push({type: "message", sender: "server", text: "Click a user to start a call."});
         messages.push({type: "message", sender: "server", text: "Click again to hang up."});
     }
 
