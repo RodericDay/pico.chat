@@ -4,8 +4,8 @@ function updateUi(lastMessage) {
         connect(ws, lastMessage.sender, lastMessage);
     }
 
-    var chatLog = m("div#chat-log", messages
-            .filter(e=>e.type==='message')
+    var chatMessages = messages.filter(e=>e.type==='message');
+    var chatLog = m("div#chat-log", chatMessages
             .map(e=>m.trust(marked(e.sender + ': ' + e.text)))
         );
 
@@ -36,6 +36,10 @@ function updateUi(lastMessage) {
     m.render(document.getElementById("main"), [chatLog, userPanel, inputField]);
     var scrollable = document.querySelector('#chat-log');
     scrollable.scrollTop = scrollable.scrollHeight;
+    if(lastMessage.type === "message" && lastMessage.sender === uid) {
+        numSeen = chatMessages.length;
+    }
+    document.title = `${title} (${chatMessages.length - numSeen})`;
 
 }
 
@@ -87,9 +91,11 @@ function newUid(uid, message="Choose an alias:") {
     location.replace(location.origin); // refresh page
 }
 
+var title = document.title;
 var uid = localStorage.uid;
 var users = new Set();
 var messages = [];
+var numSeen = 0;
 var ws = null;
 window.onload = function() {
     if(location.href.includes('?')) {
