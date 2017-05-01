@@ -17,6 +17,12 @@ function updateUi(lastMessage) {
             .map(makeButton)
         );
 
+    var renderMagnets = m("div#magnetic-surface", magnets
+            .map(([s,x,y,z],i)=>m(`div.magnet#${i}`, {
+                style:`left: ${x}px; top: ${y}px; z-index: ${z};`,
+            }, s))
+        );
+
     var videoStreams = m("div.videoContainerContainer", Object.keys(myStreams)
             .sort()
             .map((u,i)=>m("div.videoContainer", [
@@ -30,7 +36,7 @@ function updateUi(lastMessage) {
         m.render(document.getElementById("streams"), videoStreams);
     }
 
-    m.render(document.getElementById("main"), [chatLog, userPanel, inputField]);
+    m.render(document.getElementById("main"), [chatLog, userPanel, inputField, renderMagnets]);
     var scrollable = document.querySelector('#chat-log');
     scrollable.scrollTop = scrollable.scrollHeight;
     if(lastMessage.type === "message" && lastMessage.sender === uid) {
@@ -82,6 +88,21 @@ var messages = [
     {type: "message", sender: "server", text: "Click a user to start a call."},
     {type: "message", sender: "server", text: "Click again to hang up."},
 ];
+
+var magnets = [...`
+♜♞♝♛♚♝♞♜
+♟♟♟♟♟♟♟♟
+・・・・・・・・
+・・・・・・・・
+・・・・・・・・
+・・・・・・・・
+♙♙♙♙♙♙♙♙
+♖♘♗♕♔♗♘♖
+`]
+.filter(c=>c!=='\n')
+.map((s,i)=>[s, 50*(i%8), 50*(i/8|0), i])
+.filter(([s])=>s!=='・');
+
 var numSeen = messages.length;
 var ws = null;
 window.onload = function() {

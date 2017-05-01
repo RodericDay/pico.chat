@@ -108,3 +108,15 @@ input, button {
 .videoContainer video {
     height: 100px;
 }
+
+
+#magnetic-surface {
+    font-size: 3em;
+    position: fixed;
+    top: 150px;
+}
+
+.magnet {
+    position: absolute;
+    user-select: none;
+}
