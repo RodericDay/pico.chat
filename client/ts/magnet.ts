@@ -1,4 +1,5 @@
-// assumes existence of draggable global
+// assumes existence of `magnets` global
+
 function onPointerDown(event) {
     if(event.target.classList.contains("magnet")) {
         target = event.target.id;
@@ -17,11 +18,17 @@ function onPointerUp(event) {
         var [dx, dy] = [event.pageX-lastX, event.pageY-lastY];
         var maxZ = Math.max(...magnets.map(([s,x,y,z])=>+z));
         var [s, x, y, z] = magnets[target];
-        magnets[target] = [s, +x+dx, +y+dy, maxZ+1];
+        var data = {[target]: [s, +x+dx, +y+dy, maxZ+1]};
         target = null;
         lastX = null;
         lastY = null;
-        updateUi({});
+        ws.send(JSON.stringify({text: data, type: 'magnet'}));
+    }
+}
+
+function onMagnet(event) {
+    for(var k of Object.keys(event.detail)) {
+        magnets[k] = event.detail[k];
     }
 }
 

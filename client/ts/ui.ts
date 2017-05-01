@@ -4,6 +4,10 @@ function updateUi(lastMessage) {
         connect(ws, lastMessage.sender, lastMessage);
     }
 
+    if(lastMessage.type === "magnet") {
+        onMagnet({detail: lastMessage.text});
+    }
+
     var chatMessages = messages.filter(e=>e.type==='message');
     var chatLog = m("div#chat-log", chatMessages
             .map(e=>e.sender==='server'?`${e.text}`:`${e.sender}: ${e.text}`)
