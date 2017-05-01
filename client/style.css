@@ -111,12 +111,27 @@ input, button {
 
 
 #magnetic-surface {
-    font-size: 3em;
-    position: fixed;
-    top: 150px;
+    position: relative;
+    background-color: white;
+    margin: 0 auto;
+
+    width: 320px;
+    height: 320px;
+
+    /* checkered pattern */
+    background-image:
+        linear-gradient(45deg, #C0C0C0 25%, transparent 25%, transparent 75%, #C0C0C0 75%),
+        linear-gradient(45deg, #C0C0C0 25%, transparent 25%, transparent 75%, #C0C0C0 75%);
+    background-size: 80px 80px;
+    background-position: 0px 0px, 40px 40px;
 }
 
 .magnet {
+    color: black;
+    font-size: 40px;
+    width: 40px;
+    line-height: 40px;
+    text-align: center;
     position: absolute;
     user-select: none;
 }

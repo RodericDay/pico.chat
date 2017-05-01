@@ -22,7 +22,7 @@ function updateUi(lastMessage) {
         );
 
     var renderMagnets = m("div#magnetic-surface", magnets
-            .map(([s,x,y,z],i)=>m(`div.magnet#${i}`, {
+            .map(([s,x=0,y=0,z=0],i)=>m(`div.magnet#${i}`, {
                 style:`left: ${x}px; top: ${y}px; z-index: ${z};`,
             }, s))
         );
@@ -40,7 +40,8 @@ function updateUi(lastMessage) {
         m.render(document.getElementById("streams"), videoStreams);
     }
 
-    m.render(document.getElementById("main"), [chatLog, userPanel, inputField, renderMagnets]);
+    m.render(document.getElementById("main"), [chatLog, userPanel, inputField]);
+    m.render(document.getElementById("magnets"), [renderMagnets]);
     var scrollable = document.querySelector('#chat-log');
     scrollable.scrollTop = scrollable.scrollHeight;
     if(lastMessage.type === "message" && lastMessage.sender === uid) {
@@ -93,6 +94,7 @@ var messages = [
     {type: "message", sender: "server", text: "Click again to hang up."},
 ];
 
+/* chess */
 var magnets = [...`
 ♜♞♝♛♚♝♞♜
 ♟♟♟♟♟♟♟♟
@@ -104,7 +106,7 @@ var magnets = [...`
 ♖♘♗♕♔♗♘♖
 `]
 .filter(c=>c!=='\n')
-.map((s,i)=>[s, 50*(i%8), 50*(i/8|0), i])
+.map((s,i)=>[s, 40*(i%8), 40*(i/8|0), i])
 .filter(([s])=>s!=='・');
 
 var numSeen = messages.length;
