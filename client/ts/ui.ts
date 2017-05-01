@@ -4,10 +4,10 @@ function updateUi(lastMessage) {
         connect(ws, lastMessage.sender, lastMessage);
     }
 
-    var prefix = string => (string==='server'?'':`${string}: `);
     var chatMessages = messages.filter(e=>e.type==='message');
     var chatLog = m("div#chat-log", chatMessages
-            .map(e=>m.trust(marked(prefix(e.sender) + e.text)))
+            .map(e=>e.sender==='server'?`${e.text}`:`${e.sender}: ${e.text}`)
+            .map(s=>m.trust(marked(s)))
         );
 
     var inputField = m("input#input-field", {onkeyup: sendMessage});
@@ -70,7 +70,7 @@ function sendMessage(event) {
 function newUid(uid, message="Choose an alias:") {
     var random = Math.random().toFixed(16).slice(2, 8);
     localStorage.uid = window.prompt(message) || random;
-    location.replace(location.origin); // refresh page
+    location.replace(location.origin); // refresh page without hash
 }
 
 var title = document.title;
