@@ -30,10 +30,6 @@ function updateUi(lastMessage) {
         m.render(document.getElementById("streams"), videoStreams);
     }
 
-    if(lastMessage.type === "cards") {
-        cardsReceive(lastMessage);
-    }
-
     m.render(document.getElementById("main"), [chatLog, userPanel, inputField]);
     var scrollable = document.querySelector('#chat-log');
     scrollable.scrollTop = scrollable.scrollHeight;
@@ -71,21 +67,6 @@ function sendMessage(event) {
     }
 }
 
-
-function cardsBroadcast() {
-    var moves = getCards("selected").map(card=>card.json);
-    ws.send(JSON.stringify({type:"cards", moves: moves}));
-}
-
-function cardsReceive(message) {
-    for(var info of message.moves) {
-        var card = document.getElementById(info.id)["card"];
-        card.x = info.x;
-        card.y = info.y;
-        card.z = info.z;
-    }
-}
-
 function newUid(uid, message="Choose an alias:") {
     var random = Math.random().toFixed(16).slice(2, 8);
     localStorage.uid = window.prompt(message) || random;
@@ -95,8 +76,13 @@ function newUid(uid, message="Choose an alias:") {
 var title = document.title;
 var uid = localStorage.uid;
 var users = new Set();
-var messages = [];
-var numSeen = 0;
+var messages = [
+    {type: "message", sender: "server", text: `Welcome ${uid}!`},
+    {type: "message", sender: "server", text: "Click [here](https://chat.roderic.ca/?) to change your alias."},
+    {type: "message", sender: "server", text: "Click a user to start a call."},
+    {type: "message", sender: "server", text: "Click again to hang up."},
+];
+var numSeen = messages.length;
 var ws = null;
 window.onload = function() {
     if(location.href.includes('?')) {
