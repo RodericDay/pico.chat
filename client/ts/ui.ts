@@ -94,8 +94,10 @@ var messages = [
     {type: "message", sender: "server", text: "Click again to hang up."},
 ];
 
+var magnets = [];
+
 /* chess */
-var magnets = [...`
+magnets = [...`
 ♜♞♝♛♚♝♞♜
 ♟♟♟♟♟♟♟♟
 ・・・・・・・・
@@ -108,6 +110,12 @@ var magnets = [...`
 .filter(c=>c!=='\n')
 .map((s,i)=>[s, 40*(i%8), 40*(i/8|0), i])
 .filter(([s])=>s!=='・');
+
+/* codenames */
+// fetch('codenames.txt')
+//     .then(r=>r.text())
+//     .then(t=>magnets=t.split('\n').map(s=>[s.split(',')[0],0,0,0]))
+//     .then(()=>updateUi({}));
 
 var numSeen = messages.length;
 var ws = null;
