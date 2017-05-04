@@ -3,6 +3,8 @@
 function onPointerDown(event) {
     if(event.target.classList.contains("magnet")) {
         target = event.target.id;
+        var states = magnets[target][0];
+        states.push(states.shift()) // rotate
         lastX = event.pageX;
         lastY = event.pageY;
         event.preventDefault();

@@ -22,7 +22,7 @@ function updateUi(lastMessage) {
         );
 
     var renderMagnets = m("div#magnetic-surface", magnets
-            .map(([s,x=0,y=0,z=0],i)=>m(`div.magnet#${i}`, {
+            .map(([[[cs,s]],x,y,z],i)=>m(`div.magnet${cs}#${i}`, {
                 style:`left: ${x}px; top: ${y}px; z-index: ${z};`,
             }, s))
         );
@@ -94,10 +94,11 @@ var messages = [
     {type: "message", sender: "server", text: "Click again to hang up."},
 ];
 
-var magnets = [];
+
+var magnets: [[string,string][], number, number, number][] = [];
 
 /* chess */
-magnets = [...`
+[...`
 ♜♞♝♛♚♝♞♜
 ♟♟♟♟♟♟♟♟
 ・・・・・・・・
@@ -106,16 +107,22 @@ magnets = [...`
 ・・・・・・・・
 ♙♙♙♙♙♙♙♙
 ♖♘♗♕♔♗♘♖
-`]
-.filter(c=>c!=='\n')
-.map((s,i)=>[s, 40*(i%8), 40*(i/8|0), i])
-.filter(([s])=>s!=='・');
+`].filter(c=>c!=='\n').forEach(function(s, i){
+    if(s !== "・") {
+        magnets.push([[[".piece", s]], 40*(i%8), 40*(i/8|0), i]);
+    }
+});
 
 /* codenames */
-// fetch('codenames.txt')
-//     .then(r=>r.text())
-//     .then(t=>magnets=t.split('\n').map(s=>[s.split(',')[0],0,0,0]))
-//     .then(()=>updateUi({}));
+function setupCodenames(text) {
+    text.split('\n').forEach(function(t, i){
+        if(t) {
+            var states = t.split(',').map((s:string):[string, string]=>[".card", s]);
+            magnets.push([states, 90, 90, i]);
+        }
+    });
+}
+fetch('codenames.txt').then(r=>r.text()).then(setupCodenames);
 
 var numSeen = messages.length;
 var ws = null;

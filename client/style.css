@@ -128,10 +128,31 @@ input, button {
 
 .magnet {
     color: black;
+    position: absolute;
+    user-select: none;
+    text-align: center;
+}
+.piece {
     font-size: 40px;
     width: 40px;
     line-height: 40px;
-    text-align: center;
-    position: absolute;
-    user-select: none;
+}
+.card {
+    font-size: 10px;
+    background-color: yellow;
+    line-height: 30px;
+    width: 60px;
+    outline: 1px solid black;
+}
+.black {
+    background-color: black;
+}
+.blue {
+    background-color: blue;
+}
+.red {
+    background-color: red;
+}
+.gray {
+    background-color: gray;
 }
