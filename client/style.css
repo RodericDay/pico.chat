@@ -15,7 +15,7 @@ body {
 input, button {
     border: none;
     resize: none;
-    margin: 1px;
+    margin: 0;
     padding: 0;
     border-radius: 0;
     -webkit-appearance: none;
@@ -124,6 +124,11 @@ input, button {
         linear-gradient(45deg, #C0C0C0 26%, transparent 26%, transparent 74%, #C0C0C0 74%);
     background-size: 80px 80px;
     background-position: 0px 0px, 40px 40px;
+}
+#magnetic-actions button {
+    background-color: red;
+    margin: 1px;
+    padding: 10px;
 }
 
 .magnet {

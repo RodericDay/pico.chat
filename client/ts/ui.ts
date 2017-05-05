@@ -127,7 +127,7 @@ function setupCodenames(text) {
         }
     });
 }
-fetch('codenames.txt').then(r=>r.text()).then(setupCodenames);
+fetch2('codenames.txt', setupCodenames);
 
 var numSeen = messages.length;
 var ws = null;
