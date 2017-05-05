@@ -95,7 +95,8 @@ var messages = [
 ];
 
 
-var magnets: [[string,string][], number, number, number][] = [];
+type magnet = [[string,string][], number, number, number];
+var magnets:magnet[] = [];
 
 /* chess */
 [...`

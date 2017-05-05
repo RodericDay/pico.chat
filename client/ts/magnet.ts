@@ -1,13 +1,15 @@
 // assumes existence of `magnets` global
 
 function onPointerDown(event) {
-    if(event.target.classList.contains("magnet")) {
-        target = event.target.id;
-        var states = magnets[target][0];
-        states.push(states.shift()) // rotate
+    picked = [...document
+        .elementsFromPoint(event.pageX, event.pageY)
+        .filter(e=>e.classList.contains("magnet"))
+        .map(e=>e.id)
+    ];
+    if(picked.length > 0) {
+        event.preventDefault();
         lastX = event.pageX;
         lastY = event.pageY;
-        event.preventDefault();
     }
 }
 
@@ -16,15 +18,23 @@ function onPointerMove(event) {
 }
 
 function onPointerUp(event) {
-    if(target) {
+    if(picked) {
         var [dx, dy] = [event.pageX-lastX, event.pageY-lastY];
         var maxZ = Math.max(...magnets.map(([s,x,y,z])=>+z));
-        var [s, x, y, z] = magnets[target];
-        var data = {[target]: [s, +x+dx, +y+dy, maxZ+1]};
-        target = null;
+
+        var data = {};
+        for(var id of picked) {
+            var magnet = magnets[id];
+            magnet[0].push(magnet[0].shift()) // rotate
+            magnet[1] += dx;
+            magnet[2] += dy;
+            magnet[3] += maxZ;
+            data[id] = magnet;
+        }
+        ws.send(JSON.stringify({text: data, type: 'magnet'}));
+        picked = null;
         lastX = null;
         lastY = null;
-        ws.send(JSON.stringify({text: data, type: 'magnet'}));
     }
 }
 
@@ -34,9 +44,7 @@ function onMagnet(event) {
     }
 }
 
-var target = null;
-var lastX = null;
-var lastY = null;
+var picked:string[], lastX:number, lastY:number;
 window.addEventListener("touchstart", onPointerDown);
 window.addEventListener("touchmove", onPointerMove);
 window.addEventListener("touchend", onPointerUp);
