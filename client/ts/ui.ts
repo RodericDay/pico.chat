@@ -21,11 +21,15 @@ function updateUi(lastMessage) {
             .map(makeButton)
         );
 
-    var renderMagnets = m("div#magnetic-surface", magnets
+    var renderMagnets = [
+        m("div#magnetic-surface", magnets
             .map(([[[cs,s]],x,y,z],i)=>m(`div.magnet${cs}#${i}`, {
                 style:`left: ${x}px; top: ${y}px; z-index: ${z};`,
             }, s))
-        );
+        ),
+        m("div#magnetic-actions",
+          Object.keys(actions).map(s=>m("button", {onclick: actions[s]}, s)))
+    ];
 
     var videoStreams = m("div.videoContainerContainer", Object.keys(myStreams)
             .sort()
