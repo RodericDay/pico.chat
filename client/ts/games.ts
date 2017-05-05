@@ -31,7 +31,7 @@ function setupCodenames() {
         text.split('\n').reverse().forEach(function(t, i) {
             if (t) {
                 var states = t.split(',').map(s=>`div.magnet.card[text=${s}]`);
-                magnets.push([states, -5, 5, i]);
+                magnets.push([states, -10, 10, i]);
             }
         });
         var p1 = Math.random() > 0.5 ? "blue" : "red";
@@ -42,7 +42,7 @@ function setupCodenames() {
             ...Array(7).fill("gray")
         ];
         for (var color of squares) {
-            magnets.push([[`div.magnet.card.${color}`], -5, 5, 2000]);
+            magnets.push([[`div.magnet.card.${color}`], -10, 220, 2000]);
         }
         /* little trick to generate a dynamic image */
         var canvas = document.createElement("canvas");
@@ -60,6 +60,6 @@ function setupCodenames() {
             ctx.fillRect(3 + 11 * (i % 5), 3 + 11 * (i / 5 | 0), 10, 10);
         });
         var src2 = canvas.toDataURL();
-        magnets.push([[`img.magnet[src=${src1}]`, `img.magnet[src=${src2}]`], 50, 50, 1000]);
+        magnets.push([[`img.magnet[src=${src1}]`, `img.magnet[src=${src2}]`], 280, -20, 1000]);
     });
 }

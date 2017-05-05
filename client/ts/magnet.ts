@@ -70,10 +70,6 @@ var actions = {
         updateUi({});
     },
     pick5() { actions._pickN(5) },
-    pick4() { actions._pickN(4) },
-    pick3() { actions._pickN(3) },
-    pick2() { actions._pickN(2) },
-    pick1() { actions._pickN(1) },
 }
 
 window.addEventListener("touchstart", onPointerDown);
