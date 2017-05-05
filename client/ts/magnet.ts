@@ -12,7 +12,7 @@ function onPointerDown(event) {
 }
 
 function onPointerMove(event) {
-
+    event.preventDefault();
 }
 
 function onPointerUp(event) {
