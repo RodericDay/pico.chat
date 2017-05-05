@@ -42,15 +42,26 @@ function onMagnet(event) {
 }
 
 var actions = {
-    _move(dx, dy) {picked.map(id=>magnets[id]).forEach(m=>{m[1]+=dx;m[2]+=dy}) },
-    flip() { picked.map(id=>magnets[id]).forEach(m=>m[0].push(m[0].shift())); updateUi({}); },
-    spread() { picked.slice(0).reverse().map(id=>magnets[id]).forEach((m, i)=>{m[1]+=10*i}); updateUi({}); },
-    pick5() { picked.splice(5); actions._move(20, 20); updateUi({}); },
-    pick4() {},
-    pick3() {},
-    pick2() {},
-    pick1() {},
-    pickN() {},
+    _pickN(N) {
+        picked.splice(N); actions._move(0, 30+3);
+        updateUi({});
+    },
+    _move(dx, dy) {
+        picked.map(id=>magnets[id]).forEach(m=>{m[1]+=dx;m[2]+=dy})
+    },
+    flip() {
+        picked.map(id=>magnets[id]).forEach(m=>m[0].push(m[0].shift()));
+        updateUi({});
+    },
+    spread() {
+        picked.slice(0).reverse().map(id=>magnets[id]).forEach((m, i)=>{m[1]+=(60+3)*(i+1)});
+        updateUi({});
+    },
+    pick5() { actions._pickN(5) },
+    pick4() { actions._pickN(4) },
+    pick3() { actions._pickN(3) },
+    pick2() { actions._pickN(2) },
+    pick1() { actions._pickN(1) },
 }
 var picked:string[]=[], lastX:number, lastY:number;
 window.addEventListener("touchstart", onPointerDown);

@@ -28,7 +28,9 @@ function updateUi(lastMessage) {
             }, s))
         ),
         m("div#magnetic-actions",
-          Object.keys(actions).map(s=>m("button", {onclick: actions[s]}, s)))
+          Object.keys(actions)
+            .filter(s=>picked.length>0 && s[0]!=='_')
+            .map(s=>m("button", {onclick: actions[s]}, s)))
     ];
 
     var videoStreams = m("div.videoContainerContainer", Object.keys(myStreams)
@@ -103,27 +105,28 @@ type magnet = [[string,string][], number, number, number];
 var magnets:magnet[] = [];
 
 /* chess */
-[...`
-♜♞♝♛♚♝♞♜
-♟♟♟♟♟♟♟♟
-・・・・・・・・
-・・・・・・・・
-・・・・・・・・
-・・・・・・・・
-♙♙♙♙♙♙♙♙
-♖♘♗♕♔♗♘♖
-`].filter(c=>c!=='\n').forEach(function(s, i){
-    if(s !== "・") {
-        magnets.push([[[".piece", s]], 40*(i%8), 40*(i/8|0), i]);
-    }
-});
+// [...`
+// ♜♞♝♛♚♝♞♜
+// ♟♟♟♟♟♟♟♟
+// ・・・・・・・・
+// ・・・・・・・・
+// ・・・・・・・・
+// ・・・・・・・・
+// ♙♙♙♙♙♙♙♙
+// ♖♘♗♕♔♗♘♖
+// `].filter(c=>c!=='\n').forEach(function(s, i){
+//     if(s !== "・") {
+//         magnets.push([[[".piece", s]], 40*(i%8), 40*(i/8|0), i]);
+//     }
+// });
 
 /* codenames */
 function setupCodenames(text) {
-    text.split('\n').forEach(function(t, i){
+    text.split('\n').reverse().forEach(function(t, i){
         if(t) {
-            var states = t.split(',').map((s:string):[string, string]=>[".card", s]);
-            magnets.push([states, 90, 90, i]);
+            var states = t.split(',')
+                .map((s:string):[string, string]=>s[0]==='.'?[".card"+s, "　"]:[".card", s]);
+            magnets.push([states, -5, 5, i]);
         }
     });
 }
