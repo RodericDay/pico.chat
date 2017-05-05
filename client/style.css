@@ -125,6 +125,7 @@ input, button {
     position: absolute;
     user-select: none;
     text-align: center;
+    outline: 1px solid black;
 }
 .piece {
     font-size: 40px;
@@ -136,7 +137,6 @@ input, button {
     background-color: yellow;
     line-height: 30px;
     width: 60px;
-    outline: 1px solid black;
 }
 .card:after {
     /* little hack to ensure div always takes up space */

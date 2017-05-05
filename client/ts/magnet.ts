@@ -1,12 +1,24 @@
-// assumes existence of `magnets` global
+type magnet = [string[], number, number, number];
+var magnets:magnet[] = [];
+/* handle selection */
+var lastX:number;
+var lastY:number;
+var picked:string[]=[]
+
+function magnetsFromPoint(x, y) {
+    return Array.from(document.getElementsByClassName("magnet"))
+                .filter(e=>{
+                    var r=e.getBoundingClientRect();
+                    return x>r.left&&x<r.right&&y>r.top&&y<r.bottom
+                });
+}
+
 
 function onPointerDown(event) {
     if(event.target.onclick) return;
-    picked = [...document
-        .elementsFromPoint(event.pageX, event.pageY)
-        .filter(e=>e.classList.contains("magnet"))
-        .map(e=>e.id)
-    ];
+
+    picked = magnetsFromPoint(event.pageX, event.pageY).map(e=>e.id);
+
     if(picked.length > 0) {
         event.preventDefault();
         lastX = event.pageX;
@@ -63,7 +75,7 @@ var actions = {
     pick2() { actions._pickN(2) },
     pick1() { actions._pickN(1) },
 }
-var picked:string[]=[], lastX:number, lastY:number;
+
 window.addEventListener("touchstart", onPointerDown);
 window.addEventListener("touchmove", onPointerMove);
 window.addEventListener("touchend", onPointerUp);

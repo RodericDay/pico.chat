@@ -101,62 +101,6 @@ var messages = [
     {type: "message", sender: "server", text: "Click again to hang up."},
 ];
 
-
-type magnet = [string[], number, number, number];
-var magnets:magnet[] = [];
-
-/* chess */
-// [...`
-// ♜♞♝♛♚♝♞♜
-// ♟♟♟♟♟♟♟♟
-// ・・・・・・・・
-// ・・・・・・・・
-// ・・・・・・・・
-// ・・・・・・・・
-// ♙♙♙♙♙♙♙♙
-// ♖♘♗♕♔♗♘♖
-// `].filter(c=>c!=='\n').forEach(function(s, i){
-//     if(s !== "・") {
-//         magnets.push([[[".piece", s]], 40*(i%8), 40*(i/8|0), i]);
-//     }
-// });
-
-/* codenames */
-function setupCodenames(text) {
-    text.split('\n').reverse().forEach(function(t, i){
-        if(t) {
-            var states = t.split(',').map(s=>`div.magnet.card[text=${s}]`);
-            magnets.push([states, -5, 5, i]);
-        }
-    });
-    var [p1, p2] = Math.random() > 0.5 ? ["blue", "red"] : ["red", "blue"];
-    var squares = ("black,"+"blue,".repeat(8)+"red,".repeat(8)+"gray,".repeat(7)+p1).split(",");
-    for(var color of squares) {
-        magnets.push([[`div.magnet.card.${color}`], -5, 5, 2000])
-    }
-    /* little trick to generate a dynamic image */
-    var canvas = document.createElement("canvas");
-    canvas.width = 60;
-    canvas.height = 60;
-    var ctx = canvas.getContext("2d");
-    ctx.fillStyle = p1;
-    ctx.fillRect(0, 0, 60, 60);
-    var src1 = canvas.toDataURL();
-    ctx.fillStyle = "white";
-    ctx.fillRect(2, 2, 56, 56);
-    for(var i=0;i<squares.length;i++) {
-        var r = Math.floor(Math.random()*(squares.length-1));
-        squares.push(squares.splice(r, 1)[0]);
-    }
-    squares.forEach((color, i)=>{
-            ctx.fillStyle = color;
-            ctx.fillRect(3+11*(i%5), 3+11*(i/5|0), 10, 10);
-        });
-    var src2 = canvas.toDataURL();
-    magnets.push([[`img.magnet[src=${src1}]`,`img.magnet[src=${src2}]`], 50, 50, 1000]);
-}
-fetch2('codenames.txt', setupCodenames);
-
 var numSeen = messages.length;
 var ws = null;
 window.onload = function() {
@@ -165,6 +109,7 @@ window.onload = function() {
     }
     else {
         ws = createWebSocket();
+        setupCodenames();
         updateUi({});
     }
 }
