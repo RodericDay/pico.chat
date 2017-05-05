@@ -129,6 +129,7 @@ input, button {
     background-color: red;
     margin: 1px;
     padding: 10px;
+    width: 50px;
 }
 
 .magnet {
@@ -149,13 +150,19 @@ input, button {
     width: 60px;
     outline: 1px solid black;
 }
+.card:after {
+    /* little hack to ensure div always takes up space */
+    content: "\200B" attr(text);
+}
 .black {
     background-color: black;
 }
 .blue {
+    color: red;
     background-color: blue;
 }
 .red {
+    color: blue;
     background-color: red;
 }
 .gray {

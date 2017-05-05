@@ -23,11 +23,12 @@ function updateUi(lastMessage) {
 
     var renderMagnets = [
         m("div#magnetic-surface", magnets
-            .map(([[[cs,s]],x,y,z],i)=>m(`div.magnet${cs}#${i}`, {
+            .map(([[s],x,y,z],i)=>m(`${s}#${i}`, {
                 style:`left: ${x}px; top: ${y}px; z-index: ${z};`,
-            }, s))
+            }))
         ),
         m("div#magnetic-actions",
+          m("button", `(${picked.length})`),
           Object.keys(actions)
             .filter(s=>picked.length>0 && s[0]!=='_')
             .map(s=>m("button", {onclick: actions[s]}, s)))
@@ -101,7 +102,7 @@ var messages = [
 ];
 
 
-type magnet = [[string,string][], number, number, number];
+type magnet = [string[], number, number, number];
 var magnets:magnet[] = [];
 
 /* chess */
@@ -124,11 +125,35 @@ var magnets:magnet[] = [];
 function setupCodenames(text) {
     text.split('\n').reverse().forEach(function(t, i){
         if(t) {
-            var states = t.split(',')
-                .map((s:string):[string, string]=>s[0]==='.'?[".card"+s, "　"]:[".card", s]);
+            var states = t.split(',').map(s=>`div.magnet.card[text=${s}]`);
             magnets.push([states, -5, 5, i]);
         }
     });
+    var [p1, p2] = Math.random() > 0.5 ? ["blue", "red"] : ["red", "blue"];
+    var squares = ("black,"+"blue,".repeat(8)+"red,".repeat(8)+"gray,".repeat(7)+p1).split(",");
+    for(var color of squares) {
+        magnets.push([[`div.magnet.card.${color}`], -5, 5, 2000])
+    }
+    /* little trick to generate a dynamic image */
+    var canvas = document.createElement("canvas");
+    canvas.width = 60;
+    canvas.height = 60;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = p1;
+    ctx.fillRect(0, 0, 60, 60);
+    var src1 = canvas.toDataURL();
+    ctx.fillStyle = "white";
+    ctx.fillRect(2, 2, 56, 56);
+    for(var i=0;i<squares.length;i++) {
+        var r = Math.floor(Math.random()*(squares.length-1));
+        squares.push(squares.splice(r, 1)[0]);
+    }
+    squares.forEach((color, i)=>{
+            ctx.fillStyle = color;
+            ctx.fillRect(3+11*(i%5), 3+11*(i/5|0), 10, 10);
+        });
+    var src2 = canvas.toDataURL();
+    magnets.push([[`img.magnet[src=${src1}]`,`img.magnet[src=${src2}]`], 50, 50, 1000]);
 }
 fetch2('codenames.txt', setupCodenames);
 
