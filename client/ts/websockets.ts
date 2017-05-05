@@ -16,6 +16,8 @@ function onOpen(event) {
 
 function onClose(event) {
     messages.push({type: "info", sender: "server", text: "logout"});
+    messages.push({type: "message", sender: "server", text: "Connection broken!"});
+    users.clear();
     updateUi({});
 }
 
