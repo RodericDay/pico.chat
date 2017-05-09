@@ -42,9 +42,11 @@ function openConnection() {
         }
         else if(e.data.match(/^\w+ joined$/)) {
             state.users.add(e.data.match(/^\S+/)[0]);
+            window.dispatchEvent(new CustomEvent("user"));
         }
         else if(e.data.match(/^\w+ disconnected$/)) {
             state.users.delete(e.data.match(/^\S+/)[0]);
+            window.dispatchEvent(new CustomEvent("user"));
         }
         else if(e.data.match(/^roderic: @refresh$/)) {
             refresh();

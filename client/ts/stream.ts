@@ -30,7 +30,7 @@ function getPeer(username) {
         }
         (rpc as any).ontrack = (e) => {
             streams[username] = e.streams[0];
-            m.redraw();
+            renderStreams();
         }
         peers[username] = rpc;
     }
@@ -45,7 +45,7 @@ function onPeer(event) {
         // var settings = {audio:true, video:false};
         var assign = (stream) => {
             streams[state.username] = stream;
-            m.redraw();
+            renderStreams();
             onPeer(event);
         };
         navigator.mediaDevices.getUserMedia(settings).then(assign);
@@ -86,10 +86,10 @@ function cleanUp(username) {
     if(leftover.length === 1 && leftover[0] === state.username) {
         cleanUp(state.username);
     }
-    m.redraw();
+    renderStreams();
 }
-var viewStreams = {
-    view: () => !state.loggedIn?null:[...state.users].sort().map(s=>m("div.streamContainer", [
+var viewStream = (s) =>
+    m("div.streamContainer.magnet", [
         streams[s]
         ? [
             m("video", {srcObject: streams[s], autoplay: true, muted: s===state.username}),
@@ -99,8 +99,14 @@ var viewStreams = {
             m("button.streamStart", {onclick: ()=>call(s)}),
             ],
         m("span", s),
-    ])),
-}
+    ]);
+var renderStreams = () =>
+    m.render(r,
+        (RTCPeerConnection && state.loggedIn)
+        ? [...state.users].sort().map(viewStream)
+        : []
+    );
 window.addEventListener("peer", onPeer);
+window.addEventListener("user", renderStreams);
 var r = document.getElementById("streams");
-m.mount(r, viewStreams);
+renderStreams();
