@@ -5,7 +5,9 @@ var state = {
     loggedIn: false,
     username: localStorage.username||"",
     users: new Set(),
+    title: document.title,
     messages: [],
+    messagesUnseen: 0,
     errors: [],
     actions: [logout, clear],
     ws: null,
@@ -61,6 +63,10 @@ function openConnection() {
                 }
             }
             catch(error) {
+                state.messagesUnseen += 1;
+                document.title = state.messagesUnseen
+                ? `${state.title} (${state.messagesUnseen})`
+                : `${state.title}`;
                 state.messages.push(e.data);
             }
         }
@@ -82,6 +88,7 @@ function logout(e) {
 function post(e) {
     e.preventDefault();
     if(e.target.post.value) {
+        state.messagesUnseen = -1;
         state.ws.send(e.target.post.value);
         e.target.post.value = "";
     }
