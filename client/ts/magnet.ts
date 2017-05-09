@@ -22,8 +22,10 @@ function onPointerMove(e) {
     }
 }
 function onPointerUp(e) {
-    e.preventDefault();
-    pickedUp = null;
+    if(pickedUp) {
+        e.preventDefault();
+        pickedUp = null;
+    }
 }
 window.ontouchstart = onPointerDown;
 window.ontouchmove = onPointerMove;
