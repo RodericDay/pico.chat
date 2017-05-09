@@ -1,25 +1,31 @@
 .streamContainer {
     position: relative;
     display: inline-block;
-    min-width: 25vw;
+    width: 20vw;
+    height: 15vw;
+    background-color: lightgray;
 }
 .streamContainer video {
-    outline: 1px solid black;
     transform: scaleX(-1);
-    max-width: 25vw;
+    width: 20vw;
+    height: 15vw;
+}
+.streamContainer:hover video {
+    width: auto;
+    height: auto;
 }
 .streamContainer button {
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 3px;
+    left: 3px;
     width: 15px;
     height: 15px;
     border-radius: 50%;
 }
 .streamContainer span {
     position: absolute;
-    top: 0;
-    left: 1.5em;
+    top: 2px;
+    left: 20px;
 }
 .streamContainer button.streamStart {
     background-color: green;

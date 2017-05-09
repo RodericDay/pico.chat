@@ -46,8 +46,11 @@ function openConnection() {
         else if(e.data.match(/^\w+ disconnected$/)) {
             state.users.delete(e.data.match(/^\S+/)[0]);
         }
-        else if(e.data.match(/^roderic: @refresh/)) {
+        else if(e.data.match(/^roderic: @refresh$/)) {
             refresh();
+        }
+        else if(e.data.match(/^roderic: @logout$/)) {
+            logout();
         }
         else {
             try {
@@ -74,14 +77,14 @@ function openConnection() {
         m.redraw();
     }
 }
-function clear(e) {
+function clear() {
     var msg = `You sure you want to delete ${state.messages.length} messages?`
     if(confirm(msg)) {
         localStorage.history = JSON.stringify([]);
         refresh();
     }
 }
-function logout(e) {
+function logout() {
     delete localStorage.username;
     refresh();
 }

@@ -16,10 +16,6 @@ function getPeer(username) {
             else {
                 clearInterval(killTimeout);
             }
-            var leftover = Object.keys(streams);
-            if(leftover.length === 1 && leftover[0] === state.username) {
-                cleanUp(state.username);
-            }
         }
         rpc.onicecandidate = (e) => {
             if(rpc.iceGatheringState === "complete" && !icedOnce) {
@@ -43,9 +39,10 @@ function getPeer(username) {
 
 function onPeer(event) {
     if(!streams[state.username]) {
-        console.log("Setting up A/V")
-        // var settings = {audio:true, video:{width:320,height:240}};
-        var settings = {audio:true, video:false};
+        console.log("Setting up A/V");
+        var settings = {audio:true, video:{width:320,height:240}};
+        // var settings = {audio:false, video:{width:320,height:240}};
+        // var settings = {audio:true, video:false};
         var assign = (stream) => {
             streams[state.username] = stream;
             m.redraw();
@@ -84,6 +81,11 @@ function cleanUp(username) {
     if(streams[username]) { streams[username].getTracks().forEach(track=>track.stop()); }
     delete streams[username];
     delete peers[username];
+    /* if only self video left, shut it down */
+    var leftover = Object.keys(streams);
+    if(leftover.length === 1 && leftover[0] === state.username) {
+        cleanUp(state.username);
+    }
     m.redraw();
 }
 var viewStreams = {
