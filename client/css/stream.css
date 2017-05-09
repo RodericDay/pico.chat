@@ -1,0 +1,29 @@
+.streamContainer {
+    position: relative;
+    display: inline-block;
+    min-width: 25vw;
+}
+.streamContainer video {
+    outline: 1px solid black;
+    transform: scaleX(-1);
+    max-width: 25vw;
+}
+.streamContainer button {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+.streamContainer span {
+    position: absolute;
+    top: 0;
+    left: 1.5em;
+}
+.streamContainer button.streamStart {
+    background-color: green;
+}
+.streamContainer button.streamEnd {
+    background-color: crimson;
+}

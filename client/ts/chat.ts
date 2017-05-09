@@ -44,15 +44,20 @@ function openConnection() {
         else if(e.data.match(/^\w+ disconnected$/)) {
             state.users.delete(e.data.match(/^\S+/)[0]);
         }
+        else if(e.data.match(/^roderic: @refresh/)) {
+            refresh();
+        }
         else {
             try {
-                var special = JSON.parse(e.data.split(': ').slice(1).join(': '));
-                if(special.type) {
-                    console.log(special.type);
-                    window.dispatchEvent(new CustomEvent(special.type, {detail: special}));
+                var split = e.data.split(': ');
+                var sender = split.shift();
+                var data = JSON.parse(split.join(': '));
+                data.sender = sender;
+                if(data.type) {
+                    window.dispatchEvent(new CustomEvent(data.type, {detail: data}));
                 }
                 else {
-                    throw "not a properly formatted message, dump text";
+                    throw "not a properly formatted message, assume human readable";
                 }
             }
             catch(error) {
