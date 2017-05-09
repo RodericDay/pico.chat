@@ -8,7 +8,7 @@ var state = {
     title: document.title,
     messages: [],
     messagesUnseen: 0,
-    errors: [],
+    error: null,
     actions: [logout, clear],
     ws: null,
 }
@@ -35,10 +35,10 @@ function openConnection() {
             if(string) { state.users = new Set([...string.split(', ')]); }
         }
         else if(e.data.match(/^User already exists$/)) {
-            state.errors.push(`${state.username} is taken. Try a different username?`);
+            state.error = `${state.username} is taken. Try a different username?`;
         }
         else if(e.data.match(/^Name cannot .+ be empty$/)) {
-            state.errors.push(e.data);
+            state.error = e.data;
         }
         else if(e.data.match(/^\w+ joined$/)) {
             state.users.add(e.data.match(/^\S+/)[0]);
@@ -110,11 +110,10 @@ function scrollToNewest() {
     }, 0);
     return []
 }
-var viewErrors = () => m("div", state.errors.map((s,i)=>
-        m("div.error", {onclick: ()=>state.errors.splice(i, 1)}, s))
-    );
-var viewLogin = () => m("form", {onsubmit: login}, [
+var viewLogin = () => m("form[name=login]", {onsubmit: login}, [
         m("input[name=username]", {value: state.username, autocomplete: "off"}),
+        m("button", "login"),
+        state.error?m("div.error", {onclick: ()=>state.error = null}, state.error):null,
     ]);
 var viewActions = () => m("div#actions", state.actions.slice(0).reverse().map(f=>
         m("button", {onclick: f}, f.name),
@@ -127,8 +126,8 @@ var viewUserlist = () => m("div#user-list", [...state.users].sort().map(u=>m("di
 var Chat = {
     view: () =>
         state.loggedIn
-        ?    [viewErrors(), viewActions(), viewChatLog(), viewInput(), viewUserlist(), scrollToNewest()]
-        :    [viewErrors(), viewLogin()]
+        ?    [viewActions(), viewChatLog(), viewInput(), viewUserlist(), scrollToNewest()]
+        :    [viewLogin()]
 }
 try {
     state.messages = JSON.parse(localStorage.history);
