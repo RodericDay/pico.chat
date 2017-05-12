@@ -9,8 +9,11 @@ function getPeer(username) {
         var killTimeout = null;
         rpc.addStream(streams[state.username]);
         rpc.oniceconnectionstatechange = (e) => {
-            console.log(e, rpc, rpc.iceConnectionState);
-            if(["closed","disconnected"].includes(rpc.iceConnectionState)) {
+            console.log(`(${username}) ${rpc.iceConnectionState}`);
+            if (["failed"].includes(rpc.iceGatheringState)) {
+                cleanUp(username);
+            }
+            else if(["closed","disconnected"].includes(rpc.iceConnectionState)) {
                 killTimeout = setTimeout(()=>cleanUp(username), 2500);
             }
             else {
@@ -40,9 +43,9 @@ function getPeer(username) {
 function onPeer(event) {
     if(!streams[state.username]) {
         console.log("Setting up A/V");
-        var settings = {audio:true, video:{width:320,height:240}};
+        // var settings = {audio:true, video:{width:320,height:240}};
         // var settings = {audio:false, video:{width:320,height:240}};
-        // var settings = {audio:true, video:false};
+        var settings = {audio:true, video:false};
         var assign = (stream) => {
             streams[state.username] = stream;
             renderStreams();

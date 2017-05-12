@@ -1,7 +1,7 @@
 .streamContainer {
     position: relative;
-    width: 20vw;
-    height: 15vw;
+    width: 200px;
+    height: 20px;
     background-color: lightgray;
     box-shadow: 0px 0px 10px black;
 }
