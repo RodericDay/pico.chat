@@ -17,7 +17,7 @@ function getPeer(username) {
                 killTimeout = setTimeout(()=>cleanUp(username), 2500);
             }
             else {
-                clearInterval(killTimeout);
+                clearTimeout(killTimeout);
             }
         }
         rpc.onicecandidate = (e) => {
@@ -48,6 +48,7 @@ function onPeer(event) {
         var settings = {audio:true, video:false};
         var assign = (stream) => {
             streams[state.username] = stream;
+            notifyAudio(stream);
             renderStreams();
             onPeer(event);
         };
@@ -91,6 +92,20 @@ function cleanUp(username) {
     }
     renderStreams();
 }
+function notifyAudio(stream) {
+    var audioContext = new AudioContext();
+    var analyser = audioContext.createAnalyser();
+    var microphone = audioContext.createMediaStreamSource(stream);
+    var javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+    analyser.smoothingTimeConstant = 0.3;
+    analyser.fftSize = 1024;
+
+    microphone.connect(analyser);
+    analyser.connect(javascriptNode);
+    javascriptNode.connect(audioContext.destination);
+    // javascriptNode.onaudioprocess = function() {};
+}
 var viewStream = (s) =>
     m("div.streamContainer.magnet", [
         streams[s]
@@ -103,12 +118,13 @@ var viewStream = (s) =>
             ],
         m("span", s),
     ]);
-var renderStreams = () =>
+var renderStreams = function() {
     m.render(r,
         (RTCPeerConnection && state.loggedIn)
         ? [...state.users].sort().map(viewStream)
-        : []
+        : [],
     );
+}
 window.addEventListener("peer", onPeer);
 window.addEventListener("user", renderStreams);
 var r = document.getElementById("streams");
