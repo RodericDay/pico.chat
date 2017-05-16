@@ -1,4 +1,4 @@
-var config = {
+var chatConfig = {
     wsUrl: "wss://chat.roderic.ca/ws/",
 }
 var state = {
@@ -19,7 +19,7 @@ function login(e) {
     openConnection();
 }
 function openConnection() {
-    state.ws = new WebSocket(config.wsUrl);
+    state.ws = new WebSocket(chatConfig.wsUrl);
     state.ws.onopen = (e) => {
         state.ws.send(`Hi! I am ${state.username}`);
         m.redraw();
@@ -33,6 +33,7 @@ function openConnection() {
             state.loggedIn = true;
             var string = e.data.split(': ')[1];
             if(string) { state.users = new Set([...string.split(', ')]); }
+            window.dispatchEvent(new CustomEvent("login"));
         }
         else if(e.data.match(/^User already exists$/)) {
             state.error = `${state.username} is taken. Try a different username?`;
@@ -41,12 +42,14 @@ function openConnection() {
             state.error = e.data;
         }
         else if(e.data.match(/^\w+ joined$/)) {
-            state.users.add(e.data.match(/^\S+/)[0]);
-            window.dispatchEvent(new CustomEvent("user"));
+            var name = e.data.match(/^\S+/)[0];
+            state.users.add(name);
+            window.dispatchEvent(new CustomEvent("user", {detail: name}));
         }
         else if(e.data.match(/^\w+ disconnected$/)) {
-            state.users.delete(e.data.match(/^\S+/)[0]);
-            window.dispatchEvent(new CustomEvent("user"));
+            var name = e.data.match(/^\S+/)[0];
+            state.users.delete(name);
+            window.dispatchEvent(new CustomEvent("user", {detail: name}));
         }
         else if(e.data.match(/^roderic: @refresh$/)) {
             refresh();
@@ -59,12 +62,13 @@ function openConnection() {
                 var split = e.data.split(': ');
                 var sender = split.shift();
                 var data = JSON.parse(split.join(': '));
+                var forMe = [undefined, state.username].includes(data.target);
                 data.sender = sender;
-                if(data.type) {
-                    window.dispatchEvent(new CustomEvent(data.type, {detail: data}));
-                }
-                else {
+                if(!data.type) {
                     throw "not a properly formatted message, assume human readable";
+                }
+                else if(forMe) {
+                    window.dispatchEvent(new CustomEvent(data.type, {detail: data}));
                 }
             }
             catch(error) {

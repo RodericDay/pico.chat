@@ -1,30 +1,24 @@
 var peers: {[username: string]: RTCPeerConnection} = {};
 var streams: {[username: string]: MediaStream} = {};
-
+var streamConfig = {
+    servers: {iceServers: [{urls: ['stun:stun.l.google.com:19302']}]},
+    // gum: {audio: true, video: {width: 320,height: 240}},
+    gum: {audio: false, video: true},
+}
 function getPeer(username) {
-    if(!peers[username]) {
-        var servers = {iceServers: [{urls:['stun:stun.l.google.com:19302']}]};
-        var rpc = new RTCPeerConnection(servers);
-        var icedOnce = false;
-        var killTimeout = null;
+    if(!peers[username] && streams[state.username]) {
+        var rpc = new RTCPeerConnection(streamConfig.servers);
         rpc.addStream(streams[state.username]);
         rpc.oniceconnectionstatechange = (e) => {
-            console.log(`(${username}) ${rpc.iceConnectionState}`);
-            if (["failed"].includes(rpc.iceGatheringState)) {
-                cleanUp(username);
+            if(rpc.iceConnectionState === "failed") {
+                closePeer(username);
             }
-            else if(["closed","disconnected"].includes(rpc.iceConnectionState)) {
-                killTimeout = setTimeout(()=>cleanUp(username), 2500);
-            }
-            else {
-                clearTimeout(killTimeout);
-            }
+            renderStreams();
         }
         rpc.onicecandidate = (e) => {
-            if(rpc.iceGatheringState === "complete" && !icedOnce) {
-                icedOnce = true;
+            if(rpc.iceGatheringState === "complete") {
                 var data = {
-                    type: "peer",
+                    type: "peerInfo",
                     target: username,
                     sdp: rpc.localDescription,
                 }
@@ -39,93 +33,75 @@ function getPeer(username) {
     }
     return peers[username]
 }
-
 function onPeer(event) {
-    if(!streams[state.username]) {
-        console.log("Setting up A/V");
-        // var settings = {audio:true, video:{width:320,height:240}};
-        // var settings = {audio:false, video:{width:320,height:240}};
-        var settings = {audio:true, video:false};
-        var assign = (stream) => {
-            streams[state.username] = stream;
-            notifyAudio(stream);
-            renderStreams();
-            onPeer(event);
-        };
-        navigator.mediaDevices.getUserMedia(settings).then(assign);
-        return
+    console.log(`(${event.detail.sender}) ${event.detail.sdp.type}`);
+    if(event.detail.sender !== state.username) {
+        var rpc = getPeer(event.detail.sender);
     }
-    var rpc = getPeer(event.detail.sender);
-    var forMe = event.detail.target === state.username;
-    if(event.detail.sdp === undefined) {
-        console.log(`(${event.detail.sender}) 0 -> 1`);
+    if(rpc && event.detail.sdp.type === "start") {
         rpc.createOffer().then(offer=>rpc.setLocalDescription(offer));
     }
-    else if(forMe && event.detail.sdp.type === "offer") {
-        console.log(`(${event.detail.sender}) 1 -> 2`);
+    else if(rpc && event.detail.sdp.type === "offer") {
         rpc.setRemoteDescription(new RTCSessionDescription(event.detail.sdp));
         rpc.createAnswer().then(answer=>rpc.setLocalDescription(answer));
     }
-    else if(forMe && event.detail.sdp.type === "answer") {
-        console.log(`(${event.detail.sender}) 2 -> 3`);
+    else if(rpc && event.detail.sdp.type === "answer") {
         rpc.setRemoteDescription(new RTCSessionDescription(event.detail.sdp));
     }
-}
-function call(username) {
-    if(username !== state.username) {
-        onPeer({detail: {sender: username}})
-    }
-}
-function hangUp(username) {
-    if(username !== state.username) {
-        if(peers[username]) { peers[username].close() }
-    }
-}
-function cleanUp(username) {
-    if(streams[username]) { streams[username].getTracks().forEach(track=>track.stop()); }
-    delete streams[username];
-    delete peers[username];
-    /* if only self video left, shut it down */
-    var leftover = Object.keys(streams);
-    if(leftover.length === 1 && leftover[0] === state.username) {
-        cleanUp(state.username);
+    else if(rpc && event.detail.sdp.type === "stop") {
+        closePeer(event.detail.sender);
     }
     renderStreams();
 }
-function notifyAudio(stream) {
-    var audioContext = new AudioContext();
-    var analyser = audioContext.createAnalyser();
-    var microphone = audioContext.createMediaStreamSource(stream);
-    var javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
-
-    analyser.smoothingTimeConstant = 0.3;
-    analyser.fftSize = 1024;
-
-    microphone.connect(analyser);
-    analyser.connect(javascriptNode);
-    javascriptNode.connect(audioContext.destination);
-    // javascriptNode.onaudioprocess = function() {};
+function closePeer(username) {
+    if(streams[username]) {
+        for(var track of streams[username].getTracks()) {
+            track.stop();
+        }
+        delete streams[username];
+    }
+    if(peers[username]) {
+        peers[username].close();
+        delete peers[username];
+    }
 }
-var viewStream = (s) =>
-    m("div.streamContainer.magnet", [
-        streams[s]
-        ? [
-            m("video", {srcObject: streams[s], autoplay: true, muted: s===state.username}),
-            m("button.streamEnd", {onclick: ()=>hangUp(s)}),
-            ]
-        : [
-            m("button.streamStart", {onclick: ()=>call(s)}),
-            ],
-        m("span", s),
-    ]);
+async function startStreaming() {
+    if(!streams[state.username]) {
+        var stream = await navigator.mediaDevices.getUserMedia(streamConfig.gum);
+        streams[state.username] = stream;
+    }
+    if(streams[state.username]) {
+        state.ws.send(JSON.stringify({type: "peerInfo", sdp: {type: "start"}}));
+    }
+}
+async function stopStreaming() {
+    for(var username of state.users) {
+        closePeer(username);
+    }
+    state.ws.send(JSON.stringify({type: "peerInfo", sdp: {type: "stop"}}))
+}
+var viewStream = (username) => {
+    var config = {
+        srcObject: streams[username],
+        autoplay: true,
+        muted: username===state.username,
+    }
+    return m("div.streamContainer.magnet",
+        m("video", config),
+        m("div.info", peers[username]
+            ? `${username} (${peers[username].iceConnectionState})`
+            : `${username}`)
+        )
+}
 var renderStreams = function() {
-    m.render(r,
-        (RTCPeerConnection && state.loggedIn)
-        ? [...state.users].sort().map(viewStream)
-        : [],
-    );
+    var root = document.getElementById("streams");
+    m.render(root, !state.loggedIn?[]:[
+        m("div.streamOptions",
+            m("button", {onclick: startStreaming}, "start"),
+            m("button", {onclick: stopStreaming}, "stop"),
+        ),
+        Object.keys(streams).sort().map(viewStream),
+    ])
 }
-window.addEventListener("peer", onPeer);
-window.addEventListener("user", renderStreams);
-var r = document.getElementById("streams");
-renderStreams();
+window.addEventListener("peerInfo", onPeer);
+window.addEventListener("login", renderStreams);
