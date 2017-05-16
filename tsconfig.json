@@ -2,7 +2,7 @@
     "exclude": [], // dump compiled files in the parent folder
     "compilerOptions": {
         "target": "es6",
-        "outDir": "../js",
+        "outDir": "client/js",
         "typeRoots": ["/usr/local/lib/node_modules/@types/"],
         "types": ["marked", "mithril-global"],
         "lib": ["es2016", "dom"] // or es6 instead of es2016(es7)
