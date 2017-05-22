@@ -1,3 +1,12 @@
+function sorted(set) {
+    /* TypeScript, Sets, and ES5 need a workaround */
+    var sortable = [];
+    set.forEach(item=>sortable.push(item));
+    return sortable.sort()
+}
+if(!Array.prototype.find) {
+    Array.prototype.find = ()=>false;
+}
 var chatConfig = {
     wsUrl: "wss://chat.roderic.ca/ws/",
 }
@@ -62,7 +71,7 @@ function openConnection() {
                 var split = e.data.split(': ');
                 var sender = split.shift();
                 var data = JSON.parse(split.join(': '));
-                var forMe = [undefined, state.username].includes(data.target);
+                var forMe = data.target === undefined || data.target === state.username;
                 data.sender = sender;
                 if(!data.type) {
                     throw "not a properly formatted message, assume human readable";
@@ -126,7 +135,7 @@ var viewChatLog = () => m("div#chat-log", state.messages.map(s=>m.trust(marked(s
 var viewInput = () => m("form", {onsubmit: post}, [
         m("input[name=post]", {autocomplete: "off"}),
     ]);
-var viewUserlist = () => m("div#user-list", [...state.users].sort().map(u=>m("div", u)));
+var viewUserlist = () => m("div#user-list", sorted(state.users).map(u=>m("div", u)));
 var Chat = {
     view: () =>
         state.loggedIn

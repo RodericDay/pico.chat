@@ -2,8 +2,8 @@ var peers: {[username: string]: RTCPeerConnection} = {};
 var streams: {[username: string]: MediaStream} = {};
 var streamConfig = {
     servers: {iceServers: [{urls: ['stun:stun.l.google.com:19302']}]},
-    // gum: {audio: true, video: {width: 320,height: 240}},
-    gum: {audio: false, video: true},
+    // gum: {audio: false, video: true},
+    gum: {audio: true, video: {width: 320, height: 240, facingMode: {exact: "user"}}},
 }
 function getPeer(username) {
     if(!peers[username] && streams[state.username]) {
@@ -75,9 +75,7 @@ async function startStreaming() {
     }
 }
 async function stopStreaming() {
-    for(var username of state.users) {
-        closePeer(username);
-    }
+    state.users.forEach(closePeer);
     state.ws.send(JSON.stringify({type: "peerInfo", sdp: {type: "stop"}}))
 }
 var viewStream = (username) => {
