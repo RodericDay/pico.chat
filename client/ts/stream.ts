@@ -84,22 +84,21 @@ var viewStream = (username) => {
         autoplay: true,
         muted: username===state.username,
     }
-    return m("div.streamContainer.magnet",
+    return m("div.streamContainer",
         m("video", config),
-        m("div.info", peers[username]
-            ? `${username} (${peers[username].iceConnectionState})`
-            : `${username}`)
-        )
+        m("div.info", username),
+    )
 }
 var renderStreams = function() {
     var root = document.getElementById("streams");
     m.render(root, !state.loggedIn?[]:[
         m("div.streamOptions",
-            m("button", {onclick: startStreaming}, "start"),
-            m("button", {onclick: stopStreaming}, "stop"),
+            m("button", {onclick: startStreaming, style:{backgroundColor:'green'}}),
+            m("button", {onclick: stopStreaming, style:{backgroundColor:'red'}}),
         ),
         Object.keys(streams).sort().map(viewStream),
     ])
 }
 window.addEventListener("peerInfo", onPeer);
 window.addEventListener("login", renderStreams);
+window.addEventListener("logout", renderStreams);

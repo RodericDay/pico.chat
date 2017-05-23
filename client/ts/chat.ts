@@ -35,6 +35,7 @@ function openConnection() {
     }
     state.ws.onclose = (e) => {
         state.loggedIn = false;
+        window.dispatchEvent(new CustomEvent("logout"));
         m.redraw();
     }
     state.ws.onmessage = (e) => {
