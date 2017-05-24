@@ -93,8 +93,9 @@ var renderStreams = function() {
     var root = document.getElementById("streams");
     m.render(root, !state.loggedIn?[]:[
         m("div.streamOptions",
-            m("button", {onclick: startStreaming, style:{backgroundColor:'green'}}),
-            m("button", {onclick: stopStreaming, style:{backgroundColor:'red'}}),
+            streams[state.username]
+            ? m("img[src=svg/camera-x.svg]", {onclick: stopStreaming})
+            : m("img[src=svg/camera.svg].shadow", {onclick: startStreaming}),
         ),
         Object.keys(streams).sort().map(viewStream),
     ])
