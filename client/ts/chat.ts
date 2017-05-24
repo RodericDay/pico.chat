@@ -5,10 +5,13 @@ function sorted(set) {
     return sortable.sort()
 }
 if(!Array.prototype.find) {
+    /* Get around an issue with camera selection in older devices */
     Array.prototype.find = ()=>false;
 }
 var chatConfig = {
-    wsUrl: "wss://chat.roderic.ca/ws/",
+    wsUrl: location.href === "http://localhost:8000/"
+        ? "ws://localhost:9160/"
+        : "wss://chat.roderic.ca/ws/",
 }
 var state = {
     loggedIn: false,
