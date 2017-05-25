@@ -17,12 +17,7 @@ function getPeer(username) {
         }
         rpc.onicecandidate = (e) => {
             if(rpc.iceGatheringState === "complete") {
-                var data = {
-                    type: "peerInfo",
-                    target: username,
-                    sdp: rpc.localDescription,
-                }
-                state.ws.send(JSON.stringify(data));
+                sendMessage("peerInfo", {sdp: rpc.localDescription}, username);
             }
         }
         (rpc as any).ontrack = (e) => {
@@ -34,21 +29,21 @@ function getPeer(username) {
     return peers[username]
 }
 function onPeer(event) {
-    console.log(`(${event.detail.sender}) ${event.detail.sdp.type}`);
+    console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
     if(event.detail.sender !== state.username) {
         var rpc = getPeer(event.detail.sender);
     }
-    if(rpc && event.detail.sdp.type === "start") {
+    if(rpc && event.detail.value.sdp.type === "start") {
         rpc.createOffer().then(offer=>rpc.setLocalDescription(offer));
     }
-    else if(rpc && event.detail.sdp.type === "offer") {
-        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.sdp));
+    else if(rpc && event.detail.value.sdp.type === "offer") {
+        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.value.sdp));
         rpc.createAnswer().then(answer=>rpc.setLocalDescription(answer));
     }
-    else if(rpc && event.detail.sdp.type === "answer") {
-        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.sdp));
+    else if(rpc && event.detail.value.sdp.type === "answer") {
+        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.value.sdp));
     }
-    else if(rpc && event.detail.sdp.type === "stop") {
+    else if(rpc && event.detail.value.sdp.type === "stop") {
         closePeer(event.detail.sender);
     }
     renderStreams();
@@ -71,12 +66,12 @@ async function startStreaming() {
         streams[state.username] = stream;
     }
     if(streams[state.username]) {
-        state.ws.send(JSON.stringify({type: "peerInfo", sdp: {type: "start"}}));
+        sendMessage("peerInfo", {sdp: {type: "start"}});
     }
 }
 async function stopStreaming() {
     state.users.forEach(closePeer);
-    state.ws.send(JSON.stringify({type: "peerInfo", sdp: {type: "stop"}}))
+    sendMessage("peerInfo", {sdp: {type: "stop"}});
 }
 var viewStream = (username) => {
     var config = {
@@ -101,5 +96,5 @@ var renderStreams = function() {
     ])
 }
 window.addEventListener("peerInfo", onPeer);
-window.addEventListener("login", renderStreams);
-window.addEventListener("logout", renderStreams);
+window.addEventListener("connect", renderStreams);
+window.addEventListener("disconnect", renderStreams);

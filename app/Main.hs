@@ -14,10 +14,16 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as T
 import qualified Network.WebSockets as WS
 
+-- https://artyom.me/aeson
 -- https://github.com/bos/aeson/blob/master/examples/Generic.hs
 -- https://www.schoolofhaskell.com/school/starting-with-haskell/libraries-and-frameworks/text-manipulation/json
-data Message = Message { kind :: Text, sender :: Text, value :: Text }
+data Message = Message { kind :: Text, value :: Text, sender :: Maybe Text, target :: Maybe Text }
     deriving (Show, Generic)
+
+-- Generates JSON string from components
+f :: Text -> Text -> Maybe Text -> Maybe Text -> Text
+f kind value sender target = (toStrict $ T.decodeUtf8 $ encode message)
+    where message = Message { kind = kind, value = value, sender = sender, target = target }
 
 instance FromJSON Message
 instance ToJSON Message
@@ -37,13 +43,15 @@ addClient client clients = client : clients
 removeClient :: Client -> ServerState -> ServerState
 removeClient client = filter ((/= fst client) . fst)
 
-sendMessage :: Message -> Client -> IO ()
-sendMessage message (username, conn) = do
-    WS.sendTextData conn (toStrict $ T.decodeUtf8 $ encode message)
+sendText :: Text -> Client -> IO ()
+sendText text (username, conn) = do WS.sendTextData conn text
 
-broadcast :: Message -> ServerState -> IO ()
-broadcast message clients = do
-    forM_ clients $ sendMessage message
+broadcast :: Text -> ServerState -> IO ()
+broadcast text clients = do forM_ clients $ sendText text
+
+sendPM :: Text -> Text -> ServerState -> IO ()
+sendPM text target clients = do forM_ clients' $ sendText text
+    where clients' = filter ((== target) . fst) clients
 
 main :: IO ()
 main = do
@@ -55,37 +63,40 @@ application :: MVar ServerState -> WS.ServerApp
 application state pending = do
     conn <- WS.acceptRequest pending
     WS.forkPingThread conn 30
-    login <- WS.receiveData conn
+    text <- WS.receiveData conn
     clients <- readMVar state
-    let sendError = \text -> sendMessage Message { kind = "error", sender = "server", value = text } ("", conn)
-    case decode login :: Maybe Message of
-        Nothing -> sendError "Communication error"
-        Just message ->
-            case message of
+    case decode text :: Maybe Message of
+        Nothing -> sendText "Connection error" ("", conn)
+        Just message -> case message of
             _   | any ($ username) [T.null, T.any isPunctuation, T.any isSpace] ->
-                    sendError "Name cannot contain punctuation or whitespace, and cannot be empty"
+                    sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
                 | clientExists client clients ->
-                    sendError "User already exists"
-                | otherwise -> flip finally disconnect $ do
+                    sendText "User already exists" client
+                | otherwise ->
+                    flip finally disconnect $ do
                     modifyMVar_ state $ \s -> do
                         let userList = T.intercalate ";" (map fst s)
-                        sendMessage Message { kind = "login", sender = "server", value = userList } client
+                        sendText (f "login" userList Nothing Nothing) client
                         let s' = addClient client s
-                        broadcast Message { kind = "user", sender = username, value = "connected" } s'
+                        broadcast (f "connect" username Nothing Nothing) s'
                         return s'
                     talk state client
                 where
-                    username = sender message
+                    username = value message
                     client = (username, conn)
                     disconnect = do
                         -- Remove client and return new state
                         s <- modifyMVar state $
                             \s -> let s' = removeClient client s in return (s', s')
-                        broadcast Message { kind = "user", sender = username, value = "disconnected" } s
+                        broadcast (f "disconnect" username Nothing Nothing) s
 
 talk :: MVar ServerState -> Client -> IO ()
-talk state (user, conn) = forever $ do
-    receivedData <- WS.receiveData conn
-    case decode receivedData :: Maybe Message of
-        Just message -> readMVar state >>= broadcast message
-        Nothing -> print receivedData
+talk state (username, conn) = forever $ do
+    text <- WS.receiveData conn
+    case decode text :: Maybe Message of
+        Nothing -> sendText "Error processing message" (username, conn)
+        Just message -> case target message of
+            Nothing -> readMVar state >>= broadcast json
+            Just target -> readMVar state >>= sendPM json target
+            where
+                json = (f (kind message) (value message) (Just username) (target message))

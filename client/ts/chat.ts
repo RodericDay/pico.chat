@@ -24,8 +24,11 @@ var state = {
     actions: [logout, clear],
     ws: null,
 }
-function sendMessage(kind, value) {
-    state.ws.send(JSON.stringify({kind: kind, sender: state.username, value: value}));
+function sendMessage(kind, value, target=undefined) {
+    if(value.constructor.name !== "String") {
+        value = JSON.stringify(value);
+    }
+    state.ws.send(JSON.stringify({kind: kind, value: value, target: target}));
 }
 function login(e) {
     e.preventDefault();
@@ -41,17 +44,22 @@ function openConnection() {
     }
     state.ws.onclose = (e) => {
         state.loggedIn = false;
-        dispatchEvent(new CustomEvent("logout"));
+        dispatchEvent(new CustomEvent("disconnect", {detail: state.username}));
         m.redraw();
     }
     state.ws.onmessage = (e) => {
         try {
             var message = JSON.parse(e.data);
+            try {
+                message.value = JSON.parse(message.value);
+            }
+            catch(SyntaxError) {
+                // pass
+            }
         }
         catch(SyntaxError) {
-            var message = <any>{kind: "error", value: `JSON Error: "${e.data}"`}
+            var message:any = {kind: "socketError", value: e.data}
         }
-        console.log(message);
         dispatchEvent(new CustomEvent(message.kind, {detail: message}));
         m.redraw();
     }
@@ -108,25 +116,31 @@ var viewChatLog = () => m("div#chat-log", state.messages.map(s=>m.trust(marked(s
 var viewInput = () => m("form", {onsubmit: post}, [
         m("input[name=post]", {autocomplete: "off"}),
     ]);
-var viewUserlist = () => m("div#user-list", sorted(state.users).map(u=>m("div", u)));
+var viewUserList = () => m("div#user-list", sorted(state.users).map(u=>m("div", u)));
 var Chat = {
     view: () =>
         state.loggedIn
-        ? [viewError(), viewActions(), viewChatLog(), viewInput(), viewUserlist(), scrollToNewest()]
+        ? [viewError(), viewActions(), viewChatLog(), viewInput(), viewUserList(), scrollToNewest()]
         : [viewError(), viewLogin()]
 }
+/* listeners */
+addEventListener("socketError", (e:CustomEvent)=>{
+    state.error = e.detail.value;
+});
+addEventListener("login", (e:CustomEvent)=>{
+    state.loggedIn = true;
+    state.users = new Set([...e.detail.value.split(';')]);
+});
+addEventListener("connect", (e:CustomEvent)=>{
+    state.users.add(e.detail.value);
+});
+addEventListener("disconnect", (e:CustomEvent)=>{
+    state.users.delete(e.detail.value);
+});
+addEventListener("post", (e:CustomEvent)=>{
+    state.messages.push(`${e.detail.sender}: ${e.detail.value}`);
+});
 /* initialize */
-addEventListener("error", (e)=>state.error = (e as any).detail.value);
-addEventListener("login", (e)=>{state.loggedIn = true;});
-addEventListener("user", (e)=>{
-    var d = (e as any).detail;
-    if(d.value === 'connected') state.users.add(d.sender);
-    else if(d.value === 'disconnected') state.users.delete(d.sender);
-});
-addEventListener("post", (e)=>{
-    var d = (e as any).detail;
-    state.messages.push(`${d.sender}: ${d.value}`);
-});
 loadMessagesFromStorage();
 var root = document.getElementById("chat");
 m.mount(root, Chat);
