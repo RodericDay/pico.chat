@@ -18,4 +18,5 @@ executable chat
   build-depends:       base
                      , text
                      , websockets
+                     , aeson
   default-language:    Haskell2010

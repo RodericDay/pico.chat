@@ -1,11 +1,11 @@
 function sorted(set) {
-    /* TypeScript, Sets, and ES5 need a workaround */
+    /* Combination of TypeScript, Sets, and ES5 needs a workaround */
     var sortable = [];
     set.forEach(item=>sortable.push(item));
     return sortable.sort()
 }
 if(!Array.prototype.find) {
-    /* Get around an issue with camera selection in older devices */
+    /* Get around an issue with camera selection (exact) in older devices */
     Array.prototype.find = ()=>false;
 }
 var chatConfig = {
@@ -15,7 +15,7 @@ var chatConfig = {
 }
 var state = {
     loggedIn: false,
-    username: localStorage.username||"",
+    username: localStorage.username || "",
     users: new Set(),
     title: document.title,
     messages: [],
@@ -23,6 +23,9 @@ var state = {
     error: null,
     actions: [logout, clear],
     ws: null,
+}
+function sendMessage(kind, value) {
+    state.ws.send(JSON.stringify({kind: kind, sender: state.username, value: value}));
 }
 function login(e) {
     e.preventDefault();
@@ -33,66 +36,23 @@ function login(e) {
 function openConnection() {
     state.ws = new WebSocket(chatConfig.wsUrl);
     state.ws.onopen = (e) => {
-        state.ws.send(`Hi! I am ${state.username}`);
+        sendMessage("login", state.username);
         m.redraw();
     }
     state.ws.onclose = (e) => {
         state.loggedIn = false;
-        window.dispatchEvent(new CustomEvent("logout"));
+        dispatchEvent(new CustomEvent("logout"));
         m.redraw();
     }
     state.ws.onmessage = (e) => {
-        if(e.data.match(/^Welcome!.*/)) {
-            state.loggedIn = true;
-            var string = e.data.split(': ')[1];
-            if(string) { state.users = new Set([...string.split(', ')]); }
-            window.dispatchEvent(new CustomEvent("login"));
+        try {
+            var message = JSON.parse(e.data);
         }
-        else if(e.data.match(/^User already exists$/)) {
-            state.error = `${state.username} is taken. Try a different username?`;
+        catch(SyntaxError) {
+            var message = <any>{kind: "error", value: `JSON Error: "${e.data}"`}
         }
-        else if(e.data.match(/^Name cannot .+ be empty$/)) {
-            state.error = e.data;
-        }
-        else if(e.data.match(/^\w+ joined$/)) {
-            var name = e.data.match(/^\S+/)[0];
-            state.users.add(name);
-            window.dispatchEvent(new CustomEvent("user", {detail: name}));
-        }
-        else if(e.data.match(/^\w+ disconnected$/)) {
-            var name = e.data.match(/^\S+/)[0];
-            state.users.delete(name);
-            window.dispatchEvent(new CustomEvent("user", {detail: name}));
-        }
-        else if(e.data.match(/^roderic: @refresh$/)) {
-            refresh();
-        }
-        else if(e.data.match(/^roderic: @logout$/)) {
-            logout();
-        }
-        else {
-            try {
-                var split = e.data.split(': ');
-                var sender = split.shift();
-                var data = JSON.parse(split.join(': '));
-                var forMe = data.target === undefined || data.target === state.username;
-                data.sender = sender;
-                if(!data.type) {
-                    throw "not a properly formatted message, assume human readable";
-                }
-                else if(forMe) {
-                    window.dispatchEvent(new CustomEvent(data.type, {detail: data}));
-                }
-            }
-            catch(error) {
-                state.messagesUnseen += 1;
-                document.title = state.messagesUnseen
-                ? `${state.title} (${state.messagesUnseen})`
-                : `${state.title}`;
-                state.messages.push(e.data);
-            }
-        }
-        localStorage.history = JSON.stringify(state.messages);
+        console.log(message);
+        dispatchEvent(new CustomEvent(message.kind, {detail: message}));
         m.redraw();
     }
 }
@@ -111,7 +71,7 @@ function post(e) {
     e.preventDefault();
     if(e.target.post.value) {
         state.messagesUnseen = -1;
-        state.ws.send(e.target.post.value);
+        sendMessage("post", e.target.post.value);
         e.target.post.value = "";
     }
 }
@@ -119,18 +79,27 @@ function refresh() {
     location.replace(location.href);
 }
 function scrollToNewest() {
-    window.setTimeout(function(){
+    var _ = function() {
         var el = document.getElementById("chat-log");
-        if(el) {
-            el.scrollTop = el.scrollHeight;
-        }
-    }, 0);
+        if(el) { el.scrollTop = el.scrollHeight; }
+    }
+    window.setTimeout(_, 0);
     return []
 }
+function loadMessagesFromStorage() {
+    try {
+        state.messages = JSON.parse(localStorage.history);
+        if(state.messages.constructor.name !== "Array") { throw "storage error" }
+    }
+    catch(e) {
+        state.messages = [];
+    }
+}
+/* views */
+var viewError = () => state.error?m("div.centered.error", {onclick: ()=>state.error = null}, state.error):[];
 var viewLogin = () => m("form[name=login]", {onsubmit: login}, [
         m("input[name=username]", {value: state.username, autocomplete: "off"}),
         m("button", "login"),
-        state.error?m("div.error", {onclick: ()=>state.error = null}, state.error):null,
     ]);
 var viewActions = () => m("div#actions", state.actions.slice(0).reverse().map(f=>
         m("button", {onclick: f}, f.name),
@@ -143,16 +112,22 @@ var viewUserlist = () => m("div#user-list", sorted(state.users).map(u=>m("div", 
 var Chat = {
     view: () =>
         state.loggedIn
-        ?    [viewActions(), viewChatLog(), viewInput(), viewUserlist(), scrollToNewest()]
-        :    [viewLogin()]
+        ? [viewError(), viewActions(), viewChatLog(), viewInput(), viewUserlist(), scrollToNewest()]
+        : [viewError(), viewLogin()]
 }
-try {
-    state.messages = JSON.parse(localStorage.history);
-    if(state.messages.constructor.name !== "Array") { throw "storage error" }
-}
-catch(e) {
-    state.messages = [];
-}
+/* initialize */
+addEventListener("error", (e)=>state.error = (e as any).detail.value);
+addEventListener("login", (e)=>{state.loggedIn = true;});
+addEventListener("user", (e)=>{
+    var d = (e as any).detail;
+    if(d.value === 'connected') state.users.add(d.sender);
+    else if(d.value === 'disconnected') state.users.delete(d.sender);
+});
+addEventListener("post", (e)=>{
+    var d = (e as any).detail;
+    state.messages.push(`${d.sender}: ${d.value}`);
+});
+loadMessagesFromStorage();
 var root = document.getElementById("chat");
 m.mount(root, Chat);
 if(state.username) { openConnection(); }
