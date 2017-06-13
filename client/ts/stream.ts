@@ -78,7 +78,9 @@ function uploadFile(event) {
     var file = event.target.files[0];
     // humanize filesize
     var size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
-    reader.onload = (e) => sendMessage("post", `[${file.name} (${size})](${reader.result})`);
+    reader.onload = (e) => {
+        sendMessage("post", `<a download="${file.name}" href="${reader.result}">${file.name} (${size})</a>`)
+    }
     reader.readAsDataURL(file);
 }
 var viewStream = (username) => {
