@@ -73,6 +73,12 @@ async function stopStreaming() {
     state.users.forEach(closePeer);
     sendMessage("peerInfo", {sdp: {type: "stop"}});
 }
+function uploadFile(event) {
+    var reader = new FileReader();
+    var file = event.target.files[0];
+    reader.onload = (e) => sendMessage("post", `[${file.name}](${reader.result})`);
+    reader.readAsDataURL(file);
+}
 var viewStream = (username) => {
     var config = {
         srcObject: streams[username],
@@ -88,6 +94,10 @@ var renderStreams = function() {
     var root = document.getElementById("streams");
     m.render(root, !state.loggedIn?[]:[
         m("div.streamOptions",
+            m("input#fileInput[type=file]", {onchange: uploadFile}),
+            m("img[src=svg/upload.svg].shadow", {onclick: ()=>{
+                (document.getElementById("fileInput") as HTMLInputElement).click()
+            }}),
             streams[state.username]
             ? m("img[src=svg/camera-x.svg]", {onclick: stopStreaming})
             : m("img[src=svg/camera.svg].shadow", {onclick: startStreaming}),
