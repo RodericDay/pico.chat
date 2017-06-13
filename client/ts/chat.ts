@@ -112,7 +112,7 @@ var viewLogin = () => m("form[name=login]", {onsubmit: login}, [
 var viewActions = () => m("div#actions", state.actions.slice(0).reverse().map(f=>
         m("button", {onclick: f}, f.name),
     ));
-var viewChatLog = () => m("div#chat-log", state.messages.map(s=>m.trust(marked(s))));
+var viewChatLog = () => m("div#chat-log", state.messages.map(s=>m.trust(marked(s).replace(/a href/g, `a target="_blank" href`))));
 var viewInput = () => m("form", {onsubmit: post}, [
         m("input[name=post]", {autocomplete: "off"}),
     ]);
