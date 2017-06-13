@@ -76,7 +76,9 @@ async function stopStreaming() {
 function uploadFile(event) {
     var reader = new FileReader();
     var file = event.target.files[0];
-    reader.onload = (e) => sendMessage("post", `[${file.name}](${reader.result})`);
+    // humanize filesize
+    var size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
+    reader.onload = (e) => sendMessage("post", `[${file.name} (${size})](${reader.result})`);
     reader.readAsDataURL(file);
 }
 var viewStream = (username) => {
