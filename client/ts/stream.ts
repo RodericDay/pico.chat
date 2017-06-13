@@ -3,7 +3,7 @@ var streams: {[username: string]: MediaStream} = {};
 var streamConfig = {
     servers: {iceServers: [{urls: ['stun:stun.l.google.com:19302']}]},
     // gum: {audio: false, video: true},
-    gum: {audio: true, video: {width: 320, height: 240, facingMode: {exact: "user"}}},
+    gum: {audio: true, video: {width: 320, height: 240, facingMode: "user"}},
 }
 function getPeer(username) {
     if(!peers[username] && streams[state.username]) {
