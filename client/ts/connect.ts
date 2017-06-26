@@ -1,12 +1,13 @@
 function openConnection() {
-    let ws = new WebSocket(config.wsUrl);
-    ws.onopen = (e) => {
+    state.ws = new WebSocket(config.wsUrl);
+    state.ws.onopen = (e) => {
+        state.loginError = null,
         sendMessage("login", state.username);
     }
-    ws.onclose = (e) => {
-        dispatchEvent(new CustomEvent("disconnect", {detail: state.username}));
+    state.ws.onclose = (e) => {
+        dispatchEvent(new CustomEvent("logout", {detail: state.username}));
     }
-    ws.onmessage = (e) => {
+    state.ws.onmessage = (e) => {
         try {
             var message = JSON.parse(e.data);
             try {
@@ -21,13 +22,51 @@ function openConnection() {
         }
         dispatchEvent(new CustomEvent(message.kind, {detail: message}));
     }
-    return ws
 }
 function sendMessage(kind, value, target=undefined) {
     if(value.constructor.name !== "String") {
         value = JSON.stringify(value);
     }
-    ws.send(JSON.stringify({kind: kind, value: value, target: target}));
+    state.ws.send(JSON.stringify({kind: kind, value: value, target: target}));
 }
-addEventListener("socketError", (e:any) => {console.error(e.detail.value)});
-let ws = openConnection();
+function tryLogin(event) {
+    event.preventDefault();
+    openConnection();
+}
+let Login = {
+    view: function() {
+        if(state.loggedIn) {
+            return m("footer", [
+                m("button", {onclick: ()=>{state.ws.close()}}, "logout"),
+            ])
+        }
+        else {
+            return m("form.centered[name=login]", {onsubmit: tryLogin}, [
+                state.loginError ? m("div.error", state.loginError) : [],
+                m("input[name=username]", {
+                    onkeyup: (e)=>{state.username=e.target.value},
+                    value: state.username,
+                    autocomplete: "off",
+                    placeholder: "username",
+                }),
+                m("button", "login"),
+            ])
+        }
+    },
+}
+addEventListener("socketError", (e:any) => {
+    state.loginError = e.detail.value;
+    m.redraw();
+});
+addEventListener("login", (e:any) => {
+    localStorage.username = state.username;
+    state.loggedIn = true;
+    m.redraw();
+});
+addEventListener("logout", (e:any) => {
+    state.loggedIn = false;
+    m.redraw();
+});
+var loginRoot = document.getElementById("login");
+m.mount(loginRoot, Login);
+openConnection();

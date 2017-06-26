@@ -67,10 +67,6 @@ function loadMessagesFromStorage() {
 }
 /* views */
 var viewError = () => state.error?m("div.centered.error", {onclick: ()=>state.error = null}, state.error):[];
-var viewLogin = () => m("form[name=login]", {onsubmit: login}, [
-        m("input[name=username]", {value: state.username, autocomplete: "off"}),
-        m("button", "login"),
-    ]);
 var viewActions = () => m("div#actions", state.actions.slice(0).reverse().map(f=>
         m("button", {onclick: f}, f.name),
     ));
