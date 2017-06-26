@@ -74,14 +74,15 @@ async function stopStreaming() {
     sendMessage("peerInfo", {sdp: {type: "stop"}});
 }
 function uploadFile(event) {
-    var reader = new FileReader();
-    var file = event.target.files[0];
-    // humanize filesize
-    var size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
-    reader.onload = (e) => {
-        sendMessage("post", `<a download="${file.name}" href="${reader.result}">${file.name} (${size})</a>`)
+    for(let file of event.target.files) {
+        let reader = new FileReader();
+        // humanize filesize
+        let size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
+        reader.onload = (e) => {
+            sendMessage("post", `<a download="${file.name}" href="${reader.result}">${file.name} (${size})</a>`)
+        }
+        reader.readAsDataURL(file);
     }
-    reader.readAsDataURL(file);
 }
 var viewStream = (username) => {
     var config = {
@@ -98,7 +99,7 @@ var renderStreams = function() {
     var root = document.getElementById("streams");
     m.render(root, !state.loggedIn?[]:[
         m("div.streamOptions",
-            m("input#fileInput[type=file]", {onchange: uploadFile}),
+            m("input#fileInput[type=file][multiple=multiple]", {onchange: uploadFile}),
             m("img[src=svg/upload.svg].shadow", {onclick: ()=>{
                 (document.getElementById("fileInput") as HTMLInputElement).click()
             }}),
