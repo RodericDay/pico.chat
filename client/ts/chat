@@ -8,11 +8,6 @@ if(!Array.prototype.find) {
     /* Get around an issue with camera selection (exact) in older devices */
     Array.prototype.find = ()=>false;
 }
-var chatConfig = {
-    wsUrl: location.href === "http://localhost:8000/"
-        ? "ws://localhost:9160/"
-        : "wss://chat.roderic.ca/ws/",
-}
 var state = {
     loggedIn: false,
     username: localStorage.username || "",
@@ -24,45 +19,12 @@ var state = {
     actions: [logout, clear],
     ws: null,
 }
-function sendMessage(kind, value, target=undefined) {
-    if(value.constructor.name !== "String") {
-        value = JSON.stringify(value);
-    }
-    state.ws.send(JSON.stringify({kind: kind, value: value, target: target}));
-}
+
 function login(e) {
     e.preventDefault();
     state.username = e.target.username.value;
     localStorage.username = state.username;
     openConnection();
-}
-function openConnection() {
-    state.ws = new WebSocket(chatConfig.wsUrl);
-    state.ws.onopen = (e) => {
-        sendMessage("login", state.username);
-        m.redraw();
-    }
-    state.ws.onclose = (e) => {
-        state.loggedIn = false;
-        dispatchEvent(new CustomEvent("disconnect", {detail: state.username}));
-        m.redraw();
-    }
-    state.ws.onmessage = (e) => {
-        try {
-            var message = JSON.parse(e.data);
-            try {
-                message.value = JSON.parse(message.value);
-            }
-            catch(SyntaxError) {
-                // pass
-            }
-        }
-        catch(SyntaxError) {
-            var message:any = {kind: "socketError", value: e.data}
-        }
-        dispatchEvent(new CustomEvent(message.kind, {detail: message}));
-        m.redraw();
-    }
 }
 function clear() {
     var msg = `You sure you want to delete ${state.messages.length} messages?`
@@ -144,4 +106,3 @@ addEventListener("post", (e:CustomEvent)=>{
 loadMessagesFromStorage();
 var root = document.getElementById("chat");
 m.mount(root, Chat);
-if(state.username) { openConnection(); }
