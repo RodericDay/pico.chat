@@ -63,7 +63,7 @@ form[name=login] div.error {
     text-align: center;
 }
 /* main */
-/*#chat {
+#chat {
     position: relative;
     min-height: 120px;
     max-width: 400px;

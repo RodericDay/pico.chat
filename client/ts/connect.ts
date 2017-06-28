@@ -54,16 +54,16 @@ let Login = {
         }
     },
 }
-addEventListener("socketError", (e:any) => {
+addEventListener("socketError", (e:CustomEvent) => {
     state.loginError = e.detail.value;
     m.redraw();
 });
-addEventListener("login", (e:any) => {
-    localStorage.username = state.username;
+addEventListener("login", (e:CustomEvent) => {
+    localStorage.username = JSON.stringify(state.username);
     state.loggedIn = true;
     m.redraw();
 });
-addEventListener("logout", (e:any) => {
+addEventListener("logout", (e:CustomEvent) => {
     state.loggedIn = false;
     m.redraw();
 });
