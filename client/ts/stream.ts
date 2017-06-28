@@ -1,14 +1,7 @@
-var peers: {[username: string]: RTCPeerConnection} = {};
-var streams: {[username: string]: MediaStream} = {};
-var streamConfig = {
-    servers: {iceServers: [{urls: ['stun:stun.l.google.com:19302']}]},
-    // gum: {audio: false, video: true},
-    gum: {audio: true, video: {width: 320, height: 240, facingMode: "user"}},
-}
 function getPeer(username) {
-    if(!peers[username] && streams[state.username]) {
-        var rpc = new RTCPeerConnection(streamConfig.servers);
-        rpc.addStream(streams[state.username]);
+    if(!state.peers[username] && state.streams[state.username]) {
+        var rpc = new RTCPeerConnection({iceServers: config.iceServers});
+        rpc.addStream(state.streams[state.username]);
         rpc.oniceconnectionstatechange = (e) => {
             if(rpc.iceConnectionState === "failed") {
                 closePeer(username);
@@ -21,12 +14,12 @@ function getPeer(username) {
             }
         }
         (rpc as any).ontrack = (e) => {
-            streams[username] = e.streams[0];
+            state.streams[username] = e.streams[0];
             renderStreams();
         }
-        peers[username] = rpc;
+        state.peers[username] = rpc;
     }
-    return peers[username]
+    return state.peers[username]
 }
 function onPeer(event) {
     console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
@@ -49,23 +42,23 @@ function onPeer(event) {
     renderStreams();
 }
 function closePeer(username) {
-    if(streams[username]) {
-        for(var track of streams[username].getTracks()) {
+    if(state.streams[username]) {
+        for(var track of state.streams[username].getTracks()) {
             track.stop();
         }
-        delete streams[username];
+        delete state.streams[username];
     }
-    if(peers[username]) {
-        peers[username].close();
-        delete peers[username];
+    if(state.peers[username]) {
+        state.peers[username].close();
+        delete state.peers[username];
     }
 }
 async function startStreaming() {
-    if(!streams[state.username]) {
-        var stream = await navigator.mediaDevices.getUserMedia(streamConfig.gum);
-        streams[state.username] = stream;
+    if(!state.streams[state.username]) {
+        var stream = await navigator.mediaDevices.getUserMedia(config.media);
+        state.streams[state.username] = stream;
     }
-    if(streams[state.username]) {
+    if(state.streams[state.username]) {
         sendMessage("peerInfo", {sdp: {type: "start"}});
     }
 }
@@ -77,6 +70,7 @@ function uploadFile(event) {
     for(let file of event.target.files) {
         let reader = new FileReader();
         // humanize filesize
+        // breaks w/ 0
         let size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
         reader.onload = (e) => {
             sendMessage("post", `<a download="${file.name}" href="${reader.result}">${file.name} (${size})</a>`)
@@ -86,9 +80,9 @@ function uploadFile(event) {
 }
 var viewStream = (username) => {
     var config = {
-        srcObject: streams[username],
+        srcObject: state.streams[username],
         autoplay: true,
-        muted: username===state.username,
+        muted: username === state.username,
     }
     return m("div.streamContainer",
         m("video", config),
@@ -103,13 +97,14 @@ var renderStreams = function() {
             m("img[src=svg/upload.svg].shadow", {onclick: ()=>{
                 (document.getElementById("fileInput") as HTMLInputElement).click()
             }}),
-            streams[state.username]
+            state.streams[state.username]
             ? m("img[src=svg/camera-x.svg]", {onclick: stopStreaming})
             : m("img[src=svg/camera.svg].shadow", {onclick: startStreaming}),
         ),
-        Object.keys(streams).sort().map(viewStream),
+        Object.keys(state.streams).sort().map(viewStream),
     ])
 }
 window.addEventListener("peerInfo", onPeer);
 window.addEventListener("connect", renderStreams);
 window.addEventListener("disconnect", renderStreams);
+window.addEventListener("logout", renderStreams);
