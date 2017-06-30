@@ -43,7 +43,7 @@ footer span {
 footer button {
     float: right;
 }
-.centered, .centered * {
+.centered, .centered > * {
     position: absolute;
     left: 50%;
     transform: translate(-50%, 0);
@@ -112,4 +112,13 @@ input[name=post] {
     position: fixed;
     opacity: 0;
     z-index: -999;
+}
+#grid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    max-height: 80vh;
+    transform: translate(-50%,-50%);
+    z-index: -9999;
 }

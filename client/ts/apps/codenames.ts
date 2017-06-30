@@ -31,12 +31,12 @@ async function deal() {
 }
 let cards:[string, string, boolean][] = [];
 let Game = {
-    view: () => m("svg#grid",  {style:{"max-height":"70vh"}, viewBox:"0 0 5 5"}, cards.map(([color, word, revealed], i) => {
+    view: () => m("svg#grid[viewBox=0 0 5 5]", cards.map(([color, word, revealed], i) => {
         var [x, y] = [i%5, Math.floor(i/5)];
         var color = revealed||state.username.includes("42")?color:"beige";
         var opacity = revealed?0.1:1;
         return [
-            m("rect", {fill:color, x:x, y:y, height:1, width:1, onclick:()=>reveal(i)}),
+            m("rect", {fill:color, x:x+0.05, y:y+0.05, height:0.9, width:0.9, onclick:()=>reveal(i)}),
             m("text", {opacity:opacity, x:x+0.5, y:y+0.5,
                 style: {
                     "pointer-events": "none",
