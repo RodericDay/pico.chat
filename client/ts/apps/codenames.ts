@@ -20,6 +20,7 @@ async function deal() {
         ...Array(1).fill("gray"),
     ];
 
+    cards = [];
     while(colors.length) {
         let color = randomFrom(colors);
         let word = randomFrom(randomFrom(pairs).split(','));
@@ -53,4 +54,10 @@ m.mount(gameRoot, Game);
 addEventListener("login", deal);
 addEventListener("logout", (e)=>{cards=[]; m.redraw();});
 addEventListener("connect", (e:CustomEvent)=>{if(cards.length){sendMessage("codenamesState", cards, e.detail.value)}});
-addEventListener("codenamesState", (e:CustomEvent)=>{cards=e.detail.value; m.redraw()});
+addEventListener("codenamesState", (e:CustomEvent)=>{
+    cards = e.detail.value;
+    let blueLeft = cards.filter((card)=>card[0]==="steelblue"&&card[2]===false).length;
+    let redLeft = cards.filter((card)=>card[0]==="crimson"&&card[2]===false).length;
+    state.status = `${blueLeft} blue, ${redLeft} red left to go`;
+    m.redraw()
+});

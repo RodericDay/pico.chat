@@ -13,10 +13,10 @@ input, button {
 }
 button {
     background-color: lightgray;
-    padding: 10px;
     font-weight: bold;
     border-radius: 3px;
     box-shadow: 0px 0px 10px black;
+    padding: 10px;
     margin-left: 5px;
     margin-right: 5px;
 }
@@ -33,6 +33,12 @@ footer {
     right: 0;
     padding: 3px;
     box-shadow: 0px 0px 10px black;
+}
+footer span {
+    float: left;
+    padding: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 .centered, .centered * {
     position: absolute;

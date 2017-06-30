@@ -2,6 +2,7 @@ function openConnection() {
     state.ws = new WebSocket(config.wsUrl);
     state.ws.onopen = (e) => {
         state.loginError = null,
+        state.status = `Logged in as <b>${state.username}</b>`;
         sendMessage("login", state.username);
     }
     state.ws.onclose = (e) => {
@@ -37,6 +38,7 @@ let Login = {
     view: function() {
         if(state.loggedIn) {
             return m("footer", [
+                m("span", m.trust(state.status)),
                 m("button", {onclick: ()=>{state.ws.close()}}, "logout"),
             ])
         }
