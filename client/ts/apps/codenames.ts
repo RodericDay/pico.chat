@@ -7,7 +7,7 @@ function shuffle(iterable) {
 }
 function reveal(i) {
     cards[i][2] = true;
-    sendMessage("codenamesState", cards)
+    sendMessage("codenamesState", cards);
 }
 async function deal() {
     let data = await fetch("words.txt");
@@ -27,7 +27,7 @@ async function deal() {
         cards.push([color, word, false]);
     }
 
-    m.redraw();
+    sendMessage("codenamesState", cards);
 }
 let cards:[string, string, boolean][] = [];
 let Game = {
@@ -48,10 +48,10 @@ let Game = {
         ]}),
     ),
 }
+state.actions.push(deal);
 let gameRoot = document.createElement("div");
 document.body.appendChild(gameRoot);
 m.mount(gameRoot, Game);
-addEventListener("login", deal);
 addEventListener("logout", (e)=>{cards=[]; m.redraw();});
 addEventListener("connect", (e:CustomEvent)=>{if(cards.length){sendMessage("codenamesState", cards, e.detail.value)}});
 addEventListener("codenamesState", (e:CustomEvent)=>{

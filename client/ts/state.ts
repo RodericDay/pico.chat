@@ -5,6 +5,7 @@ let defaults = {
     ws: null,
     users: new Set(),
     messages: [],
+    actions: [],
     status: "",
     peers: <{[username: string]: RTCPeerConnection}>{},
     streams: <{[username: string]: MediaStream}>{},

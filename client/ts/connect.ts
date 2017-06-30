@@ -34,12 +34,15 @@ function tryLogin(event) {
     event.preventDefault();
     openConnection();
 }
+function logout() {
+    state.ws.close();
+}
 let Login = {
     view: function() {
         if(state.loggedIn) {
             return m("footer", [
                 m("span", m.trust(state.status)),
-                m("button", {onclick: ()=>{state.ws.close()}}, "logout"),
+                ...state.actions.map((f)=>m("button", {onclick: f}, f.name)),
             ])
         }
         else {
@@ -74,6 +77,7 @@ addEventListener("logout", (e:CustomEvent) => {
     state.loggedIn = false;
     m.redraw();
 });
+state.actions.push(logout);
 var loginRoot = document.getElementById("login");
 m.mount(loginRoot, Login);
 openConnection();

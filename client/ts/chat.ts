@@ -57,5 +57,6 @@ addEventListener("post", (e:CustomEvent)=>{
     scrollToNewest();
 });
 /* initialize */
+state.actions.push(clear);
 var chatRoot = document.getElementById("chat");
 m.mount(chatRoot, Chat);
