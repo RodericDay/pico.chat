@@ -59,7 +59,12 @@ addEventListener("socketError", (e:CustomEvent) => {
     m.redraw();
 });
 addEventListener("login", (e:CustomEvent) => {
-    localStorage.username = JSON.stringify(state.username);
+    try {
+        localStorage.username = JSON.stringify(state.username);
+    }
+    catch(error) {
+        // quota exceeded on Safari?
+    }
     state.loggedIn = true;
     m.redraw();
 });

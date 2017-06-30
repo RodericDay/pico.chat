@@ -17,6 +17,7 @@
     <script defer src="/js/config.js"></script>
     <script defer src="/js/state.js"></script>
     <script defer src="/js/connect.js"></script>
+    <script defer src="/js/apps/codenames.js"></script>
 
 </head>
 <style>
@@ -25,44 +26,11 @@
 }
 text {
     pointer-events: none;
+    user-select: none;
 }
 </style>
 <body>
     <div id="login"></div>
-    <svg id="grid" viewBox="0 0 5 5"></svg>
+    <div id="game"></div>
 </body>
-<script>
-function randomFrom(iterable) {
-    let i = Math.floor(Math.random()*iterable.length);
-    return iterable.splice(i, 1)[0];
-}
-async function start() {
-    var data = await fetch("words.txt");
-    var text = await data.text();
-    var pairs = text.trim().split('\n');
-    var cards = [];
-    var colors = [[9,"steelblue"],[8,"crimson"],[7,"white"],[1,"gray"]]
-        .reduce((l, [n,c])=>{return l.concat(Array(n).fill(c))}, []);
-    while(colors.length) {
-        var color = randomFrom(colors);
-        var word = randomFrom(randomFrom(pairs).split(','));
-        cards.push([color, word]);
-    }
-    cards.map((x,i)=>Math.floor(Math.random()*(cards.length-i)))  // shuffle
-    grid.innerHTML = cards.map(([color,text],i)=>`
-    <rect fill="beige" secret="${color}" x="${i%5}" y="${i/5|0}" height="1" width="1"></rect>
-    <text font-family="Verdana" text-anchor="middle" dominant-baseline="mathematical" font-size="0.15" x="${i%5+0.5}" y="${Math.floor(i/5)+0.5}">${text}</text>
-    `).join('\n');
-    for(let rect of document.querySelectorAll("rect")) {
-        rect.onclick = (e) => {
-            let rect = e.target;
-            let fill = rect.attributes.fill;
-            let secret = rect.attributes.secret;
-            fill.value = fill.value === "beige" ? secret.value : "beige";
-        }
-    }
-}
-addEventListener("login", start);
-addEventListener("logout", (e)=>{grid.innerHTML = ''});
-</script>
 </html>
