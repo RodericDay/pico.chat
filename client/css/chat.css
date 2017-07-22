@@ -43,6 +43,15 @@ footer span {
 footer button {
     float: right;
 }
+footer img {
+    float: right;
+    height: 40px;
+    margin: 0 5px;
+    box-shadow: 0px 0px 10px black;
+}
+footer img:active {
+    box-shadow: none;
+}
 .centered, .centered > * {
     position: absolute;
     left: 50%;

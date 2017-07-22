@@ -53,7 +53,7 @@ function closePeer(username) {
         delete state.peers[username];
     }
 }
-async function startStreaming() {
+async function streamingStart() {
     if(!state.streams[state.username]) {
         var stream = await navigator.mediaDevices.getUserMedia(config.media);
         state.streams[state.username] = stream;
@@ -62,7 +62,7 @@ async function startStreaming() {
         sendMessage("peerInfo", {sdp: {type: "start"}});
     }
 }
-async function stopStreaming() {
+async function streamingStop() {
     state.users.forEach(closePeer);
     sendMessage("peerInfo", {sdp: {type: "stop"}});
 }
@@ -77,8 +77,8 @@ var viewStream = (username) => {
         m("div.info", username),
     )
 }
-state.actions.push(startStreaming); // "img[src=svg/camera-x.svg]"
-state.actions.push(stopStreaming); // "img[src=svg/camera.svg].shadow"
+state.actions.push(streamingStart);
+state.actions.push(streamingStop);
 var streamRoot = document.createElement("div");
 document.body.appendChild(streamRoot);
 var renderStreams = function() {

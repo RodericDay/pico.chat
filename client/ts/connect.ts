@@ -42,7 +42,7 @@ let Login = {
         if(state.loggedIn) {
             return m("footer", [
                 m("span", m.trust(state.status)),
-                ...state.actions.map((f)=>m("button", {onclick: f}, f.name)),
+                ...state.actions.map((f)=>m("img", {src: `svg/${f.name}.svg`, onclick: f, alt: f.name})),
             ])
         }
         else {
