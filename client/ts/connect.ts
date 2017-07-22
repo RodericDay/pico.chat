@@ -78,6 +78,7 @@ addEventListener("logout", (e:CustomEvent) => {
     m.redraw();
 });
 state.actions.push(logout);
-var loginRoot = document.getElementById("login");
+var loginRoot = document.createElement("div");
+document.body.appendChild(loginRoot);
 m.mount(loginRoot, Login);
 openConnection();

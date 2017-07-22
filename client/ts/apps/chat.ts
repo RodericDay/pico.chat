@@ -21,6 +21,18 @@ function post(e) {
 function refresh() {
     location.replace(location.href);
 }
+function uploadFile(event) {
+    for(let file of event.target.files) {
+        let reader = new FileReader();
+        // humanize filesize
+        // breaks w/ 0
+        let size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
+        reader.onload = (e) => {
+            sendMessage("post", `<a download="${file.name}" href="${reader.result}">${file.name} (${size})</a>`)
+        }
+        reader.readAsDataURL(file);
+    }
+}
 function scrollToNewest() {
     var _ = function() {
         var el = document.getElementById("chat-log");
@@ -28,12 +40,16 @@ function scrollToNewest() {
     }
     window.setTimeout(_, 0);
 }
+function upload() {
+    (document.getElementById("fileInput") as HTMLInputElement).click();
+}
 /* views */
 var Chat = {
     view: () => !state.loggedIn?[]:[
         m("div#chat-log", state.messages.map(s=>m.trust(marked(s).replace(/a href/g, `a target="_blank" href`)))),
         m("form", {onsubmit: post}, m("input[name=post]", {autocomplete: "off"})),
         m("div#user-list", sorted(state.users).map(u=>m("div", u))),
+        m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
     ]
 }
 /* listeners */
@@ -58,5 +74,8 @@ addEventListener("post", (e:CustomEvent)=>{
 });
 /* initialize */
 state.actions.push(clear);
-var chatRoot = document.getElementById("chat");
+state.actions.push(upload); // img[src=svg/upload.svg]
+var chatRoot = document.createElement("div");
+chatRoot.id = "chat";
+document.body.appendChild(chatRoot);
 m.mount(chatRoot, Chat);
