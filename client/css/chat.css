@@ -124,5 +124,4 @@ input[name=post] {
     width: 100%;
     max-height: 80vh;
     transform: translate(-50%,-50%);
-    z-index: -9999;
 }

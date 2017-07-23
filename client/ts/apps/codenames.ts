@@ -31,7 +31,7 @@ async function deal() {
 }
 let cards:[string, string, boolean][] = [];
 let Game = {
-    view: () => m("svg#grid[viewBox=0 0 5 5]", cards.map(([color, word, revealed], i) => {
+    view: () => cards.length == 0 ? [] : m("svg#grid[viewBox=0 0 5 5]", cards.map(([color, word, revealed], i) => {
         var [x, y] = [i%5, Math.floor(i/5)];
         var color = revealed||state.username.includes("42")?color:"beige";
         var opacity = revealed?0.1:1;
