@@ -53,9 +53,39 @@ function closePeer(username) {
         delete state.peers[username];
     }
 }
+function detectAudio(stream) {
+    let audioContext = new AudioContext();
+    let analyser = audioContext.createAnalyser();
+    let microphone = audioContext.createMediaStreamSource(stream);
+    let javascriptNode = audioContext.createScriptProcessor(256, 1, 1);
+
+    analyser.smoothingTimeConstant = 0;
+
+    microphone.connect(analyser);
+    analyser.connect(javascriptNode);
+    javascriptNode.connect(audioContext.destination);
+
+    let timeout = null;
+    let isSpeaking = false;
+
+    javascriptNode.onaudioprocess = function() {
+        if(timeout===null) {
+            let array =  new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+            let volume = array.reduce((a,b)=>(a+b));
+            let isSpeakingCheck = volume > 1000;
+            if(isSpeaking !== isSpeakingCheck) {
+                isSpeaking = isSpeakingCheck;
+                sendMessage("peerVolume", isSpeaking);
+            }
+            timeout = setTimeout(()=>{timeout=null}, 500);
+        }
+    }
+}
 async function streamingStart() {
     if(!state.streams[state.username]) {
         var stream = await navigator.mediaDevices.getUserMedia(config.media);
+        detectAudio(stream);
         state.streams[state.username] = stream;
     }
     if(state.streams[state.username]) {
@@ -74,7 +104,7 @@ var viewStream = (username) => {
     }
     return m("div.streamContainer",
         m("video", localConfig),
-        m("div.info", username),
+        m(`div.info.${username}`, username),
     )
 }
 state.actions.push(streamingStart);
@@ -86,6 +116,14 @@ var renderStreams = function() {
         Object.keys(state.streams).sort().map(viewStream),
     ])
 }
+function onVolume(e:CustomEvent) {
+    let div = document.querySelector(`.streamContainer .info.${e.detail.sender}`);
+    let isSpeaking = e.detail.value;
+    if(div) {
+        isSpeaking ? div.classList.add("loud") : div.classList.remove("loud");
+    }
+}
+window.addEventListener("peerVolume", onVolume);
 window.addEventListener("peerInfo", onPeer);
 window.addEventListener("connect", renderStreams);
 window.addEventListener("disconnect", renderStreams);

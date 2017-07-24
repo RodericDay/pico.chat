@@ -21,8 +21,12 @@
     max-height: 20vw;
 }
 .streamContainer .info {
+    color: black;
     font-size: small;
     position: absolute;
     left: 1px;
     top: 0;
+}
+.streamContainer .info.loud {
+    color: lime;
 }
