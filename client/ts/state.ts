@@ -1,4 +1,5 @@
 let defaults = {
+    channel: "",
     username: "",
     loggedIn: false,
     loginError: null,

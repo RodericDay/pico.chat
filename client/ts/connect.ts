@@ -23,6 +23,10 @@ function openConnection() {
         }
         dispatchEvent(new CustomEvent(message.kind, {detail: message}));
     }
+    state.ws.onerror = (e) => {
+        state.loginError = "WebSocket error";
+        m.redraw();
+    }
 }
 function sendMessage(kind, value, target=undefined) {
     if(value.constructor.name !== "String") {
@@ -47,7 +51,12 @@ let Login = {
         }
         else {
             return m("form.centered[name=login]", {onsubmit: tryLogin}, [
-                state.loginError ? m("div.error", state.loginError) : [],
+                m("input[name=channel]", {
+                    onkeyup: (e)=>{state.channel=e.target.value},
+                    value: state.channel,
+                    autocomplete: "off",
+                    placeholder: "channel",
+                }),
                 m("input[name=username]", {
                     onkeyup: (e)=>{state.username=e.target.value},
                     value: state.username,
@@ -55,6 +64,7 @@ let Login = {
                     placeholder: "username",
                 }),
                 m("button", "login"),
+                m("div.error", state.loginError),
             ])
         }
     },

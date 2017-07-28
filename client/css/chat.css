@@ -52,14 +52,13 @@ footer img {
 footer img:active {
     box-shadow: none;
 }
-.centered, .centered > * {
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 0);
-}
 /* login */
-form[name=login] input[name=username] {
-    top: 150px;
+form[name=login] {
+    margin: 100px auto;
+}
+form[name=login] input {
+    margin: 15px auto;
+    display: block;
     width: 200px;
     font-size: 30px;
     text-align: center;
@@ -67,18 +66,21 @@ form[name=login] input[name=username] {
     border-radius: 3px;
 }
 form[name=login] button {
-    top: 200px;
+    display: block;
+    margin: 15px auto;
     background-color: green;
     color: white;
 }
 form[name=login] div.error {
-    z-index: 999;
-    top: 50px;
+    margin: 15px auto;
     padding: 10px;
     width: 250px;
     background-color: red;
     color: white;
     text-align: center;
+}
+form[name=login] div.error:empty {
+    display: none;
 }
 /* main */
 #chat {
