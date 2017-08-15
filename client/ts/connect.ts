@@ -51,6 +51,7 @@ let Login = {
         }
         else {
             return m("form.centered[name=login]", {onsubmit: tryLogin}, [
+                m("a", {href: "https://roderic.ca"}, "created by roderic"),
                 m("input[name=channel]", {
                     onkeyup: (e)=>{state.channel=e.target.value},
                     value: state.channel,

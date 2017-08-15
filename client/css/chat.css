@@ -56,6 +56,13 @@ footer img:active {
 form[name=login] {
     margin: 100px auto;
 }
+form[name=login] a {
+    margin: 0 auto;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: lime;
+}
 form[name=login] input {
     margin: 15px auto;
     display: block;
