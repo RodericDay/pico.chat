@@ -30,28 +30,28 @@ instance FromJSON Message
 instance ToJSON Message
 
 type Client = (Text, WS.Connection)
-type RoomState = [Client]
-type ServerState = Map.Map Text (MVar RoomState)
+type ChannelState = [Client]
+type ServerState = Map.Map Text (MVar ChannelState)
 
-newRoom :: RoomState
-newRoom = []
+newChannel :: ChannelState
+newChannel = []
 
-clientExists :: Client -> RoomState -> Bool
+clientExists :: Client -> ChannelState -> Bool
 clientExists client = any ((== fst client) . fst)
 
-addClient :: Client -> RoomState -> RoomState
+addClient :: Client -> ChannelState -> ChannelState
 addClient client clients = client : clients
 
-removeClient :: Client -> RoomState -> RoomState
+removeClient :: Client -> ChannelState -> ChannelState
 removeClient client = filter ((/= fst client) . fst)
 
 sendText :: Text -> Client -> IO ()
 sendText text (username, conn) = do WS.sendTextData conn text
 
-broadcast :: Text -> RoomState -> IO ()
+broadcast :: Text -> ChannelState -> IO ()
 broadcast text clients = do forM_ clients $ sendText text
 
-sendPM :: Text -> Text -> RoomState -> IO ()
+sendPM :: Text -> Text -> ChannelState -> IO ()
 sendPM text target clients = do forM_ clients' $ sendText text
     where clients' = filter ((== target) . fst) clients
 
@@ -61,9 +61,9 @@ invalidName username = any ($ username) [T.null, T.any isPunctuation, T.any isSp
 
 main :: IO ()
 main = do
-    a <- newMVar newRoom
-    b <- newMVar newRoom
-    c <- newMVar newRoom
+    a <- newMVar newChannel
+    b <- newMVar newChannel
+    c <- newMVar newChannel
     let serverState = Map.fromList [("", a),
                                     ("#secret", b),
                                     ("#business", c)]
@@ -80,31 +80,31 @@ application serverState pending = do
         Nothing -> sendText "Could not decode opening message" ("", conn)
         Just message -> do
 
-            let roomName = value message
+            let channelName = value message
             let username = sender message
             let client = (username, conn)
 
-            case Map.lookup roomName serverState of
-                Nothing -> sendText "That room is not available" ("", conn)
-                Just room -> do
+            case Map.lookup channelName serverState of
+                Nothing -> sendText "That channel is not available" ("", conn)
+                Just channel -> do
 
                     let connect = do
                             -- Append client and start talk loop
-                            modifyMVar_ room $ \s -> do
+                            modifyMVar_ channel $ \s -> do
                                 let userList = T.intercalate ";" (map fst s)
                                 let s' = addClient client s
                                 sendText (f "login" userList "@server" Nothing) client
                                 broadcast (f "connect" username "@server" Nothing) s'
                                 return s'
-                            talk room client
+                            talk channel client
 
                     let disconnect = do
                             -- Remove client and return new state
-                            s <- modifyMVar room $
+                            s <- modifyMVar channel $
                                 \s -> let s' = removeClient client s in return (s', s')
                             broadcast (f "disconnect" username "@server" Nothing) s
 
-                    clients <- readMVar room
+                    clients <- readMVar channel
                     case message of
                         _   | invalidName username ->
                                 sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
@@ -113,13 +113,13 @@ application serverState pending = do
                             | otherwise ->
                                 flip finally disconnect $ connect
 
-talk :: MVar RoomState -> Client -> IO ()
-talk room (username, conn) = forever $ do
+talk :: MVar ChannelState -> Client -> IO ()
+talk channel (username, conn) = forever $ do
     text <- WS.receiveData conn
     case decode text :: Maybe Message of
         Nothing -> sendText "Error processing message" (username, conn)
         Just message -> case target message of
-            Nothing -> readMVar room >>= broadcast json
-            Just target -> readMVar room >>= sendPM json target
+            Nothing -> readMVar channel >>= broadcast json
+            Just target -> readMVar channel >>= sendPM json target
             where
                 json = (f (kind message) (value message) (username) (target message))
