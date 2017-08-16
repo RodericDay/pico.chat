@@ -3,7 +3,8 @@ function openConnection() {
     state.ws.onopen = (e) => {
         state.loginError = null,
         state.status = `Logged in as <b>${state.username}</b>`;
-        sendMessage("login", state.username);
+        location.hash = state.channel;
+        sendMessage("login", state.channel);
     }
     state.ws.onclose = (e) => {
         dispatchEvent(new CustomEvent("logout", {detail: state.username}));
@@ -32,7 +33,7 @@ function sendMessage(kind, value, target=undefined) {
     if(value.constructor.name !== "String") {
         value = JSON.stringify(value);
     }
-    state.ws.send(JSON.stringify({kind: kind, value: value, target: target}));
+    state.ws.send(JSON.stringify({kind: kind, value: value, sender: state.username, target: target}));
 }
 function tryLogin(event) {
     event.preventDefault();

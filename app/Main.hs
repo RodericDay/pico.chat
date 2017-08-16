@@ -64,9 +64,9 @@ main = do
     a <- newMVar newRoom
     b <- newMVar newRoom
     c <- newMVar newRoom
-    let serverState = Map.fromList [("room1", a),
-                                    ("room2", b),
-                                    ("room3", c)]
+    let serverState = Map.fromList [("", a),
+                                    ("#secret", b),
+                                    ("#business", c)]
     print "Running on port 9160"
     WS.runServer "0.0.0.0" 9160 $ application serverState
 

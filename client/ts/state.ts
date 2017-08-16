@@ -1,5 +1,5 @@
 let defaults = {
-    channel: "",
+    channel: location.hash,
     username: "",
     loggedIn: false,
     loginError: null,
