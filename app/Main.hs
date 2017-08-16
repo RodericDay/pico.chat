@@ -55,6 +55,9 @@ sendPM :: Text -> Text -> RoomState -> IO ()
 sendPM text target clients = do forM_ clients' $ sendText text
     where clients' = filter ((== target) . fst) clients
 
+invalidName :: Text -> Bool
+invalidName username = any ($ username) [T.null, T.any isPunctuation, T.any isSpace]
+
 
 main :: IO ()
 main = do
@@ -83,7 +86,7 @@ application serverState pending = do
                 Just message ->
 
                     case message of
-                    _   | any ($ username) [T.null, T.any isPunctuation, T.any isSpace] ->
+                    _   | invalidName username ->
                             sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
                         | clientExists client clients ->
                             sendText "User already exists" client
