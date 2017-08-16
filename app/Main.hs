@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+import qualified Data.Map as Map
 import Data.Aeson (FromJSON, ToJSON, decode, encode)
 import Data.Char (isPunctuation, isSpace)
 import Data.Maybe (isJust, isNothing)
@@ -29,74 +30,90 @@ instance FromJSON Message
 instance ToJSON Message
 
 type Client = (Text, WS.Connection)
-type ServerState = [Client]
+type RoomState = [Client]
+type ServerState = Map.Map Text (MVar RoomState)
 
-newServerState :: ServerState
-newServerState = []
+newRoom :: RoomState
+newRoom = []
 
-clientExists :: Client -> ServerState -> Bool
+clientExists :: Client -> RoomState -> Bool
 clientExists client = any ((== fst client) . fst)
 
-addClient :: Client -> ServerState -> ServerState
+addClient :: Client -> RoomState -> RoomState
 addClient client clients = client : clients
 
-removeClient :: Client -> ServerState -> ServerState
+removeClient :: Client -> RoomState -> RoomState
 removeClient client = filter ((/= fst client) . fst)
 
 sendText :: Text -> Client -> IO ()
 sendText text (username, conn) = do WS.sendTextData conn text
 
-broadcast :: Text -> ServerState -> IO ()
+broadcast :: Text -> RoomState -> IO ()
 broadcast text clients = do forM_ clients $ sendText text
 
-sendPM :: Text -> Text -> ServerState -> IO ()
+sendPM :: Text -> Text -> RoomState -> IO ()
 sendPM text target clients = do forM_ clients' $ sendText text
     where clients' = filter ((== target) . fst) clients
 
+
 main :: IO ()
 main = do
-    state <- newMVar newServerState
+    a <- newMVar newRoom
+    b <- newMVar newRoom
+    c <- newMVar newRoom
+    let serverState = Map.fromList [("room1", a),
+                                    ("room2", b),
+                                    ("room3", c)]
     print "Running on port 9160"
-    WS.runServer "0.0.0.0" 9160 $ application state
+    WS.runServer "0.0.0.0" 9160 $ application serverState
 
-application :: MVar ServerState -> WS.ServerApp
-application state pending = do
+application :: ServerState -> WS.ServerApp
+application serverState pending = do
     conn <- WS.acceptRequest pending
-    WS.forkPingThread conn 30
     text <- WS.receiveData conn
-    clients <- readMVar state
-    case decode text :: Maybe Message of
-        Nothing -> sendText "Connection error" ("", conn)
-        Just message -> case message of
-            _   | any ($ username) [T.null, T.any isPunctuation, T.any isSpace] ->
-                    sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
-                | clientExists client clients ->
-                    sendText "User already exists" client
-                | otherwise ->
-                    flip finally disconnect $ do
-                    modifyMVar_ state $ \s -> do
-                        let userList = T.intercalate ";" (map fst s)
-                        sendText (f "login" userList Nothing Nothing) client
-                        let s' = addClient client s
-                        broadcast (f "connect" username Nothing Nothing) s'
-                        return s'
-                    talk state client
-                where
-                    username = value message
-                    client = (username, conn)
-                    disconnect = do
-                        -- Remove client and return new state
-                        s <- modifyMVar state $
-                            \s -> let s' = removeClient client s in return (s', s')
-                        broadcast (f "disconnect" username Nothing Nothing) s
+    WS.forkPingThread conn 30
 
-talk :: MVar ServerState -> Client -> IO ()
-talk state (username, conn) = forever $ do
+    case Map.lookup "room1" serverState of
+        Nothing -> sendText "<room1> is not available" ("?", conn)
+        Just room -> do
+            clients <- readMVar room
+
+            case decode text :: Maybe Message of
+                Nothing -> sendText "Connection error" ("", conn)
+                Just message ->
+
+                    case message of
+                    _   | any ($ username) [T.null, T.any isPunctuation, T.any isSpace] ->
+                            sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
+                        | clientExists client clients ->
+                            sendText "User already exists" client
+                        | otherwise ->
+
+                                flip finally disconnect $ do
+                                modifyMVar_ room $ \s -> do
+                                    let userList = T.intercalate ";" (map fst s)
+                                    sendText (f "login" userList Nothing Nothing) client
+                                    let s' = addClient client s
+                                    broadcast (f "connect" username Nothing Nothing) s'
+                                    return s'
+                                talk room client
+
+                    where
+                        username = value message
+                        client = (username, conn)
+                        disconnect = do
+                            -- Remove client and return new state
+                            s <- modifyMVar room $
+                                \s -> let s' = removeClient client s in return (s', s')
+                            broadcast (f "disconnect" username Nothing Nothing) s
+
+talk :: MVar RoomState -> Client -> IO ()
+talk room (username, conn) = forever $ do
     text <- WS.receiveData conn
     case decode text :: Maybe Message of
         Nothing -> sendText "Error processing message" (username, conn)
         Just message -> case target message of
-            Nothing -> readMVar state >>= broadcast json
-            Just target -> readMVar state >>= sendPM json target
+            Nothing -> readMVar room >>= broadcast json
+            Just target -> readMVar room >>= sendPM json target
             where
                 json = (f (kind message) (value message) (Just username) (target message))
