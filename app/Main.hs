@@ -18,11 +18,11 @@ import qualified Network.WebSockets as WS
 -- https://artyom.me/aeson
 -- https://github.com/bos/aeson/blob/master/examples/Generic.hs
 -- https://www.schoolofhaskell.com/school/starting-with-haskell/libraries-and-frameworks/text-manipulation/json
-data Message = Message { kind :: Text, value :: Text, sender :: Maybe Text, target :: Maybe Text }
+data Message = Message { kind :: Text, value :: Text, sender :: Text, target :: Maybe Text }
     deriving (Show, Generic)
 
 -- Generates JSON string from components
-f :: Text -> Text -> Maybe Text -> Maybe Text -> Text
+f :: Text -> Text -> Text -> Maybe Text -> Text
 f kind value sender target = (toStrict $ T.decodeUtf8 $ encode message)
     where message = Message { kind = kind, value = value, sender = sender, target = target }
 
@@ -76,39 +76,42 @@ application serverState pending = do
     text <- WS.receiveData conn
     WS.forkPingThread conn 30
 
-    case Map.lookup "room1" serverState of
-        Nothing -> sendText "<room1> is not available" ("?", conn)
-        Just room -> do
-            clients <- readMVar room
+    case decode text :: Maybe Message of
+        Nothing -> sendText "Could not decode opening message" ("", conn)
+        Just message -> do
 
-            case decode text :: Maybe Message of
-                Nothing -> sendText "Connection error" ("", conn)
-                Just message ->
+            let roomName = value message
+            let username = sender message
+            let client = (username, conn)
 
-                    case message of
-                    _   | invalidName username ->
-                            sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
-                        | clientExists client clients ->
-                            sendText "User already exists" client
-                        | otherwise ->
+            case Map.lookup roomName serverState of
+                Nothing -> sendText "That room is not available" ("", conn)
+                Just room -> do
 
-                                flip finally disconnect $ do
-                                modifyMVar_ room $ \s -> do
-                                    let userList = T.intercalate ";" (map fst s)
-                                    sendText (f "login" userList Nothing Nothing) client
-                                    let s' = addClient client s
-                                    broadcast (f "connect" username Nothing Nothing) s'
-                                    return s'
-                                talk room client
+                    let connect = do
+                            -- Append client and start talk loop
+                            modifyMVar_ room $ \s -> do
+                                let userList = T.intercalate ";" (map fst s)
+                                let s' = addClient client s
+                                sendText (f "login" userList "@server" Nothing) client
+                                broadcast (f "connect" username "@server" Nothing) s'
+                                return s'
+                            talk room client
 
-                    where
-                        username = value message
-                        client = (username, conn)
-                        disconnect = do
+                    let disconnect = do
                             -- Remove client and return new state
                             s <- modifyMVar room $
                                 \s -> let s' = removeClient client s in return (s', s')
-                            broadcast (f "disconnect" username Nothing Nothing) s
+                            broadcast (f "disconnect" username "@server" Nothing) s
+
+                    clients <- readMVar room
+                    case message of
+                        _   | invalidName username ->
+                                sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
+                            | clientExists client clients ->
+                                sendText "User already exists" client
+                            | otherwise ->
+                                flip finally disconnect $ connect
 
 talk :: MVar RoomState -> Client -> IO ()
 talk room (username, conn) = forever $ do
@@ -119,4 +122,4 @@ talk room (username, conn) = forever $ do
             Nothing -> readMVar room >>= broadcast json
             Just target -> readMVar room >>= sendPM json target
             where
-                json = (f (kind message) (value message) (Just username) (target message))
+                json = (f (kind message) (value message) (username) (target message))
