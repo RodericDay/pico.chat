@@ -1,136 +1,37 @@
-html, body {
-    background-color: indigo;
-    margin: 0;
-    padding: 0;
-    font-family: sans-serif;
-    font-size: 16px;
-}
-input, button {
-    border: none;
-    border-radius: 0;
-    margin: 0;
-    padding: 0;
-}
-button {
-    background-color: lightgray;
-    font-weight: bold;
-    border-radius: 3px;
-    box-shadow: 0px 0px 10px black;
-    padding: 10px;
-    margin-left: 5px;
-    margin-right: 5px;
-}
-button:active {
-    box-shadow: none;
-}
-footer {
-    display: block;
-    width: 100%;
-    text-align: right;
-    background-color: crimson;
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    padding: 3px;
-    box-shadow: 0px 0px 10px black;
-}
-footer span {
-    float: left;
-    padding: 10px;
-    margin-left: 5px;
-    margin-right: 5px;
-}
-footer button {
-    float: right;
-}
-footer img {
-    float: right;
-    height: 40px;
-    margin: 0 5px;
-    box-shadow: 0px 0px 10px black;
-}
-footer img:active {
-    box-shadow: none;
-}
-/* login */
-form[name=login] {
-    margin: 100px auto;
-}
-form[name=login] a {
-    margin: 0 auto;
-    display: block;
-    text-align: center;
-    text-decoration: none;
-    color: lime;
-}
-form[name=login] input {
-    margin: 15px auto;
-    display: block;
-    width: 200px;
-    font-size: 30px;
-    text-align: center;
-    background-color: lightgray;
-    border-radius: 3px;
-}
-form[name=login] button {
-    display: block;
-    margin: 15px auto;
-    background-color: green;
-    color: white;
-}
-form[name=login] div.error {
-    margin: 15px auto;
-    padding: 10px;
-    width: 250px;
-    background-color: red;
-    color: white;
-    text-align: center;
-}
-form[name=login] div.error:empty {
-    display: none;
-}
-/* main */
-#chat {
-    position: relative;
-    min-height: 120px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-#chat-log p {
-    line-height: 1;
-    margin: 0;
-    padding: 3px;
+#chat > * {
+    outline: 1px solid indigo;
 }
 #chat-log {
-    background-color: white;
-    position: absolute;
-    left: 5px;
-    top: 5px;
-    width: calc(100% - 100px - 15px);
-    height: calc(100% - 15px - 15px);
+    height: 90px;
     overflow-y: scroll;
+    grid-area: log;
 }
-#user-list {
-    background-color: white;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 100px;
-    height: calc(100% - 10px);
+#chat-log p {
+    margin: 5px;
 }
-input[name=post] {
-    background-color: white;
-    position: absolute;
-    left: 5px;
-    bottom: 5px;
-    height: 15px;
-    width: calc(100% - 100px - 15px);
+#chat-userlist {
+    grid-area: userlist;
 }
-#grid {
-    position: absolute;
-    top: 50%;
-    left: 50%;
+#chat-input {
+    grid-area: input;
+}
+#chat-input * {
+    vertical-align: middle;
+    border: none;
+    outline: none; /* chrome glow */
+    line-height: 15px;
     width: 100%;
-    max-height: 80vh;
-    transform: translate(-50%,-50%);
+    margin: 0;
+    padding: 0;
+}
+#chat {
+    margin: 0 auto;
+    max-width: 800px;
+    font-family: sans-serif;
+    display: grid;
+    grid-gap: 3px;
+    grid-template-columns: 1fr 100px;
+    grid-template-areas:
+        "log    userlist"
+        "input  userlist"
 }

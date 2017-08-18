@@ -47,8 +47,8 @@ function upload() {
 var Chat = {
     view: () => !state.loggedIn?[]:[
         m("div#chat-log", state.messages.map(s=>m.trust(marked(s).replace(/a href/g, `a target="_blank" href`)))),
-        m("form", {onsubmit: post}, m("input[name=post]", {autocomplete: "off"})),
-        m("div#user-list", sorted(state.users).map(u=>m("div", u))),
+        m("form#chat-input", {onsubmit: post}, m("input[name=post]", {autocomplete: "off"})),
+        m("div#chat-userlist", sorted(state.users).map(u=>m("div", u))),
         m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
     ]
 }
@@ -75,7 +75,7 @@ addEventListener("post", (e:CustomEvent)=>{
 /* initialize */
 state.actions.push(clear);
 state.actions.push(upload); // img[src=svg/upload.svg]
-var chatRoot = document.createElement("div");
+var chatRoot = document.createElement("main");
 chatRoot.id = "chat";
 document.body.appendChild(chatRoot);
 m.mount(chatRoot, Chat);
