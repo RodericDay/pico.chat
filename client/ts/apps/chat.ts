@@ -27,6 +27,7 @@ function uploadFile(event) {
         // humanize filesize
         // breaks w/ 0
         let size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
+        sendMessage("post", `uploading ${file.name} (${size})...`);
         reader.onload = (e) => {
             sendMessage("post", `<a download="${file.name}" href="${reader.result}">${file.name} (${size})</a>`)
         }
