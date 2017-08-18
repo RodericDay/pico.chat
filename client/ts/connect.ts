@@ -69,7 +69,6 @@ let LoginForm = {
 let StatusBar = {
     view: function() {
             return [
-                m.trust(marked(state.status)),
                 state.loggedIn
                 ? state.actions.slice().reverse().map(makeButton)
                 : LoginForm.view(),
@@ -77,12 +76,12 @@ let StatusBar = {
         }
 }
 addEventListener("socketError", (e:CustomEvent) => {
-    state.status = e.detail.value;
+    alert(e.detail.value);
     m.redraw();
 });
 addEventListener("login", (e:CustomEvent) => {
     try {
-        state.status = `Logged in as <b>${state.username}</b>`;
+        state.status = `logged in as <b>${state.username}</b>`;
         localStorage.username = JSON.stringify(state.username);
     }
     catch(error) {
@@ -99,4 +98,4 @@ state.actions.push(logout);
 var statusBar = document.createElement("footer");
 document.body.appendChild(statusBar);
 m.mount(statusBar, StatusBar);
-openConnection();
+if(state.username){openConnection()};
