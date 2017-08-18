@@ -94,6 +94,7 @@ async function streamingStart() {
 }
 async function streamingStop() {
     state.users.forEach(closePeer);
+    closePeer(state.username);
     sendMessage("peerInfo", {sdp: {type: "stop"}});
 }
 var viewStream = (username) => {
