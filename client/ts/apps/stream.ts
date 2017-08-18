@@ -108,8 +108,8 @@ var viewStream = (username) => {
         m(`div.info.${username}`, username),
     )
 }
-state.actions.push(streamingStart);
 state.actions.push(streamingStop);
+state.actions.push(streamingStart);
 var streamRoot = document.createElement("div");
 document.body.appendChild(streamRoot);
 var renderStreams = function() {

@@ -2,12 +2,11 @@ let defaults = {
     channel: location.hash,
     username: "",
     loggedIn: false,
-    loginError: null,
     ws: null,
     users: new Set(),
     messages: [],
     actions: [],
-    status: "",
+    status: "software by [roderic](https://roderic.ca)",
     peers: <{[username: string]: RTCPeerConnection}>{},
     streams: <{[username: string]: MediaStream}>{},
 }

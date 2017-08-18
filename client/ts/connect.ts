@@ -1,8 +1,6 @@
 function openConnection() {
     state.ws = new WebSocket(config.wsUrl);
     state.ws.onopen = (e) => {
-        state.loginError = null,
-        state.status = `Logged in as <b>${state.username}</b>`;
         location.hash = state.channel;
         sendMessage("login", state.channel);
     }
@@ -25,7 +23,7 @@ function openConnection() {
         dispatchEvent(new CustomEvent(message.kind, {detail: message}));
     }
     state.ws.onerror = (e) => {
-        state.loginError = "WebSocket error";
+        state.status = "WebSocket error";
         m.redraw();
     }
 }
@@ -35,48 +33,56 @@ function sendMessage(kind, value, target=undefined) {
     }
     state.ws.send(JSON.stringify({kind: kind, value: value, sender: state.username, target: target}));
 }
-function tryLogin(event) {
+function login(event) {
     event.preventDefault();
     openConnection();
 }
 function logout() {
+    state.status = "";
     state.ws.close();
 }
-let Login = {
+function makeButton(f) {
+    return m("img", {src: `svg/${f.name}.svg`, onclick: f, alt: f.name})
+}
+let LoginForm = {
     view: function() {
-        if(state.loggedIn) {
-            return m("footer", [
-                m("span", m.trust(state.status)),
-                ...state.actions.map((f)=>m("img", {src: `svg/${f.name}.svg`, onclick: f, alt: f.name})),
-            ])
+        return [
+        m("form[name=login]", {onsubmit: login}, [
+            m("input[name=username]", {
+                onkeyup: (e)=>{state.username=e.target.value},
+                value: state.username,
+                autocomplete: "off",
+                placeholder: "username",
+            }),
+            m("input[name=channel]", {
+                onkeyup: (e)=>{state.channel=e.target.value},
+                value: state.channel,
+                autocomplete: "off",
+                placeholder: "channel",
+            }),
+            m("button", {style: "display:none;"}),
+        ]),
+        makeButton(login),
+        ]
+    }
+}
+let StatusBar = {
+    view: function() {
+            return [
+                m.trust(marked(state.status)),
+                state.loggedIn
+                ? state.actions.slice().reverse().map(makeButton)
+                : LoginForm.view(),
+            ]
         }
-        else {
-            return m("form.centered[name=login]", {onsubmit: tryLogin}, [
-                m("a", {href: "https://roderic.ca"}, "created by roderic"),
-                m("input[name=channel]", {
-                    onkeyup: (e)=>{state.channel=e.target.value},
-                    value: state.channel,
-                    autocomplete: "off",
-                    placeholder: "channel",
-                }),
-                m("input[name=username]", {
-                    onkeyup: (e)=>{state.username=e.target.value},
-                    value: state.username,
-                    autocomplete: "off",
-                    placeholder: "username",
-                }),
-                m("button", "login"),
-                m("div.error", state.loginError),
-            ])
-        }
-    },
 }
 addEventListener("socketError", (e:CustomEvent) => {
-    state.loginError = e.detail.value;
+    state.status = e.detail.value;
     m.redraw();
 });
 addEventListener("login", (e:CustomEvent) => {
     try {
+        state.status = `Logged in as <b>${state.username}</b>`;
         localStorage.username = JSON.stringify(state.username);
     }
     catch(error) {
@@ -90,7 +96,7 @@ addEventListener("logout", (e:CustomEvent) => {
     m.redraw();
 });
 state.actions.push(logout);
-var loginRoot = document.createElement("div");
-document.body.appendChild(loginRoot);
-m.mount(loginRoot, Login);
+var statusBar = document.createElement("footer");
+document.body.appendChild(statusBar);
+m.mount(statusBar, StatusBar);
 openConnection();
