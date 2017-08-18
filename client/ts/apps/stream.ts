@@ -127,5 +127,6 @@ function onVolume(e:CustomEvent) {
 window.addEventListener("peerVolume", onVolume);
 window.addEventListener("peerInfo", onPeer);
 window.addEventListener("connect", renderStreams);
+window.addEventListener("disconnect", (e:CustomEvent)=>{closePeer(e.detail.value)});
 window.addEventListener("disconnect", renderStreams);
 window.addEventListener("logout", renderStreams);
