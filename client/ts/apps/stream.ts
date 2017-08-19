@@ -83,6 +83,10 @@ function detectAudio(stream) {
     }
 }
 async function streamingStart() {
+    if(!navigator.mediaDevices) {
+        alert("Your browser does not support WebRTC!");
+        return
+    }
     if(!state.streams[state.username]) {
         var stream = await navigator.mediaDevices.getUserMedia(config.media);
         detectAudio(stream);
