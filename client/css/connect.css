@@ -4,6 +4,7 @@ footer {
     right: 0;
 }
 footer * {
+    background-color: lightgray;
     font-family: sans-serif;
     margin: 0;
     padding: 0;

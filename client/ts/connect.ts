@@ -54,12 +54,6 @@ let LoginForm = {
                 autocomplete: "off",
                 placeholder: "username",
             }),
-            m("input[name=channel]", {
-                onkeyup: (e)=>{state.channel=e.target.value},
-                value: state.channel,
-                autocomplete: "off",
-                placeholder: "channel",
-            }),
             m("button", {style: "display:none;"}),
         ]),
         makeButton(login),
