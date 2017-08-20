@@ -1,37 +1,33 @@
-#chat > * {
+#chat {
+    font-family: sans-serif;
     outline: 1px solid indigo;
+    float: right;
+    width: 300px;
 }
 #chat-log {
     height: 90px;
     overflow-y: scroll;
-    grid-area: log;
 }
 #chat-log p {
     margin: 5px;
 }
-#chat-userlist {
-    grid-area: userlist;
+#chat-usercount {
+    background-color: indigo;
+    color: white;
 }
-#chat-input {
-    grid-area: input;
+#chat-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
 }
-#chat-input * {
-    vertical-align: middle;
+#chat-form input {
     border: none;
+    border-radius: 0;
     outline: none; /* chrome glow */
-    line-height: 15px;
-    width: 100%;
+    background-color: lightgray;
     margin: 0;
     padding: 0;
 }
-#chat {
-    margin: 0 auto;
-    max-width: 800px;
-    font-family: sans-serif;
-    display: grid;
-    grid-gap: 3px;
-    grid-template-columns: 1fr 100px;
-    grid-template-areas:
-        "log    userlist"
-        "input  userlist"
+#chat-form * {
+    vertical-align: middle; /* align inputs and buttons */
+    height: 20px;
 }

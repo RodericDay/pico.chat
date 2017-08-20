@@ -13,9 +13,10 @@ function clear() {
 }
 function post(e) {
     e.preventDefault();
-    if(e.target.post.value) {
-        sendMessage("post", e.target.post.value);
-        e.target.post.value = "";
+    let text = document.getElementById("chat-form")["text"];
+    if(text.value) {
+        sendMessage("post", text.value);
+        text.value = "";
     }
 }
 function refresh() {
@@ -48,8 +49,14 @@ function upload() {
 var Chat = {
     view: () => !state.loggedIn?[]:[
         m("div#chat-log", state.messages.map(s=>m.trust(marked(s).replace(/a href/g, `a target="_blank" href`)))),
-        m("form#chat-input", {onsubmit: post}, m("input[name=post]", {autocomplete: "off"})),
-        m("div#chat-userlist", sorted(state.users).map(u=>m("div", u))),
+        m("form#chat-form", {onsubmit: post},
+          m("input[name=text]", {autocomplete: "off"}),
+          makeButton(post),
+        ),
+        m("details#chat-userlist",
+            m("summary#chat-usercount", `${state.users.size} online`),
+            m("div#chat-userlist", sorted(state.users).map(u=>m("div", u))),
+        ),
         m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
     ]
 }
