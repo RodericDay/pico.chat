@@ -50,8 +50,10 @@ var Chat = {
     view: () => !state.loggedIn?[]:[
         m("div#chat-log", state.messages.map(s=>m.trust(marked(s).replace(/a href/g, `a target="_blank" href`)))),
         m("form#chat-form", {onsubmit: post},
+          makeButton(clear),
           m("input[name=text]", {autocomplete: "off"}),
           makeButton(post),
+          makeButton(upload),
         ),
         m("details#chat-userlist",
             m("summary#chat-usercount", `${state.users.size} online`),
@@ -82,8 +84,6 @@ addEventListener("post", (e:CustomEvent)=>{
     scrollToNewest();
 });
 /* initialize */
-state.actions.push(clear);
-state.actions.push(upload); // img[src=svg/upload.svg]
 var chatRoot = document.createElement("main");
 chatRoot.id = "chat";
 document.body.appendChild(chatRoot);

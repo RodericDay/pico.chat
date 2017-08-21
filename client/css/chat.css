@@ -17,7 +17,7 @@
 }
 #chat-form {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto auto;
 }
 #chat-form input {
     border: none;

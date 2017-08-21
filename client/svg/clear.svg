@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -5 10 10">
-  <rect x="-5" y="-5" width="10" height="10" fill="chocolate" />
-  <rect x="-3" y="-3" width="6" height="6" stroke="white" fill="transparent" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -5 10 10" width="200">
+    <rect x="-5" y="-5" width="10" height="10" fill="crimson" />
+    <circle cx="0" cy="0" r="2.1" stroke="white" stroke-width="1.5" fill="transparent" />
+    <polygon points="-5,-4  0,0 -5,5" fill="crimson" />
+    <polygon points="-3,-3 -3,0 -0,0" fill="white" />
 </svg>
