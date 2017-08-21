@@ -30,9 +30,9 @@ function uploadFile(event) {
         let size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
         sendMessage("post", `uploading ${file.name} (${size})...`);
         reader.onload = (e) => {
-            sendMessage("post", `<a download="${file.name}" href="${reader.result}">${file.name} (${size})</a>`)
+            sendMessage("fileTransfer", {data: reader.result, name: file.name, size: size});
         }
-        reader.readAsDataURL(file);
+        reader.readAsBinaryString(file);
     }
 }
 function scrollToNewest() {
@@ -79,6 +79,18 @@ addEventListener("disconnect", (e:CustomEvent)=>{
 });
 addEventListener("post", (e:CustomEvent)=>{
     state.messages.push(`${e.detail.sender}: ${e.detail.value}`);
+    localStorage.messages = JSON.stringify(state.messages);
+    m.redraw();
+    scrollToNewest();
+});
+addEventListener("fileTransfer", (e:CustomEvent)=>{
+    let file = e.detail.value;
+    let array = new Uint8Array(file.data.length).fill(0).map((_,i)=>file.data.charCodeAt(i));
+    let blob = new Blob([array]);
+    let fileUrl = URL.createObjectURL(blob);
+    let fileAnchor = `<a download="${file.name}" href="${fileUrl}">${file.name} (${file.size})</a>`;
+    let anchor = `${e.detail.sender}: ${fileAnchor}`;
+    state.messages.push(anchor);
     localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
     scrollToNewest();
