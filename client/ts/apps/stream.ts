@@ -95,11 +95,13 @@ async function streamingStart() {
     if(state.streams[state.username]) {
         sendMessage("peerInfo", {sdp: {type: "start"}});
     }
+    m.redraw();
 }
 async function streamingStop() {
     state.users.forEach(closePeer);
     closePeer(state.username);
     sendMessage("peerInfo", {sdp: {type: "stop"}});
+    m.redraw();
 }
 var viewStream = (username) => {
     var localConfig = {
@@ -112,8 +114,10 @@ var viewStream = (username) => {
         m(`div.info.${username}`, username),
     )
 }
-state.actions.push(streamingStop);
-state.actions.push(streamingStart);
+function isEmpty(object) {
+    return Object.keys(state.streams).length > 0
+}
+state.actions.push(()=>isEmpty(state.streams)?streamingStop:streamingStart);
 var streamRoot = document.createElement("div");
 document.body.appendChild(streamRoot);
 var renderStreams = function() {
