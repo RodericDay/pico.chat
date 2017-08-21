@@ -2,6 +2,7 @@ let defaults = {
     channel: location.hash,
     username: "",
     loggedIn: false,
+    notificationsOn: false,
     ws: null,
     users: new Set(),
     messages: [],
