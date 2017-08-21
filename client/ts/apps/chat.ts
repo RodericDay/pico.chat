@@ -40,7 +40,7 @@ function scrollToNewest() {
         var el = document.getElementById("chat-log");
         if(el) { el.scrollTop = el.scrollHeight; }
     }
-    window.setTimeout(_, 0);
+    window.setTimeout(_, 100);
 }
 function upload() {
     (document.getElementById("fileInput") as HTMLInputElement).click();
