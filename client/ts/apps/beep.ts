@@ -16,4 +16,7 @@ function beep() {
         setTimeout(()=>{gainNode.gain.value = 0}, 150);
     }
 }
+var beepStop = () => {state.notificationsOn = false}
+var beepStart = () => {state.notificationsOn = true}
+state.actions.push(()=>state.notificationsOn?beepStop:beepStart);
 addEventListener("post", beep);
