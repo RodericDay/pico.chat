@@ -1,8 +1,15 @@
 #chat {
+    position: fixed;
+    top: 0;
+    right: 0;
+    margin: 5px;
     font-family: sans-serif;
     outline: 1px solid indigo;
     float: right;
     width: 300px;
+}
+#chat:empty {
+    visibility: hidden;
 }
 #chat-log {
     height: 90px;
