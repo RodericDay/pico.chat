@@ -62,7 +62,8 @@ var Chat = {
 }
 /* listeners */
 addEventListener("login", (e:CustomEvent)=>{
-    state.users = new Set([...e.detail.value.split(';')]);
+    let strings = e.detail.value ? e.detail.value.split(';') : [];
+    state.users = new Set(strings);
     m.redraw();
     scrollToNewest();
 });
