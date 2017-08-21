@@ -43,7 +43,7 @@ function logout() {
 }
 function makeButton(f) {
     if(!f.name){f=f()} /* allow toggle-able functions according to conditional */
-    return m("img", {src: `svg/${f.name}.svg`, onclick: f, alt: f.name})
+    return m("img", {src: `svg/${f.name}.svg`, onclick: f, title: f.name})
 }
 let LoginForm = {
     view: function() {
