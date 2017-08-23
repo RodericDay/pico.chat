@@ -61,16 +61,11 @@ invalidName username = any ($ username) [T.null, T.any isPunctuation, T.any isSp
 
 main :: IO ()
 main = do
-    a <- newMVar newChannel
-    b <- newMVar newChannel
-    c <- newMVar newChannel
-    let serverState = Map.fromList [("", a),
-                                    ("#secret", b),
-                                    ("#business", c)]
+    serverState <- newMVar Map.empty
     print "Running on port 9160"
     WS.runServer "0.0.0.0" 9160 $ application serverState
 
-application :: ServerState -> WS.ServerApp
+application :: MVar ServerState -> WS.ServerApp
 application serverState pending = do
     conn <- WS.acceptRequest pending
     text <- WS.receiveData conn
@@ -84,18 +79,29 @@ application serverState pending = do
             let username = sender message
             let client = (username, conn)
 
-            case Map.lookup channelName serverState of
-                Nothing -> sendText "That channel is not available" ("", conn)
+            server <- readMVar serverState
+            case Map.lookup channelName server of
+                Just channel -> return ()
+                Nothing -> do
+
+                    -- channel does not exist, so create it
+                    new <- newMVar newChannel
+                    modifyMVar_ serverState $ \s -> do
+                        let s' = Map.insert channelName new s
+                        return s'
+
+            server' <- readMVar serverState
+            case Map.lookup channelName server' of
+                Nothing -> return ()
                 Just channel -> do
 
                     let connect = do
                             -- Append client and start talk loop
-                            modifyMVar_ channel $ \s -> do
-                                let userList = T.intercalate ";" (map fst s)
-                                let s' = addClient client s
-                                sendText (f "login" userList "@server" Nothing) client
-                                broadcast (f "connect" username "@server" Nothing) s'
-                                return s'
+                            s' <- modifyMVar channel $
+                                \s -> let s' = addClient client s in return (s', s')
+                            let userList = T.intercalate ";" (map fst s')
+                            sendText (f "login" userList "@server" Nothing) client
+                            broadcast (f "connect" username "@server" Nothing) s'
                             talk channel client
 
                     let disconnect = do
