@@ -96,20 +96,20 @@ application serverReference pending = do
 
             let connect = do
                     -- Append client and start talk loop
-                    s <- modifyMVar channelReference $
+                    channel <- modifyMVar channelReference $
                         \s -> let s' = addClient client s in return (s', s')
-                    let userList = T.intercalate ";" (map fst s)
+                    let userList = T.intercalate ";" (map fst channel)
                     sendText (f "login" userList "@server" Nothing) client
-                    broadcast (f "connect" username "@server" Nothing) s
+                    broadcast (f "connect" username "@server" Nothing) channel
                     talk channelReference client
 
             let disconnect = do
                     -- Remove client and return new state
-                    s <- modifyMVar channelReference $
+                    channel <- modifyMVar channelReference $
                         \s -> let s' = removeClient client s in return (s', s')
-                    broadcast (f "disconnect" username "@server" Nothing) s
+                    broadcast (f "disconnect" username "@server" Nothing) channel
                     -- Remove channelReference if empty
-                    let x = if null s then Nothing else Just channelReference
+                    let x = if null channel then Nothing else Just channelReference
                     modifyMVar_ serverReference $
                         \s -> let s' = Map.update (const x) channelName s in return s'
 
@@ -120,7 +120,7 @@ application serverReference pending = do
                     | clientExists client channel ->
                         sendText "User already exists" client
                     | otherwise ->
-                        flip finally disconnect $ connect
+                        finally connect disconnect
 
 talk :: MVar Channel -> Client -> IO ()
 talk channelReference (username, conn) = forever $ do
