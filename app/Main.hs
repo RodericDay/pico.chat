@@ -97,11 +97,11 @@ application serverState pending = do
 
                     let connect = do
                             -- Append client and start talk loop
-                            s' <- modifyMVar channel $
+                            s <- modifyMVar channel $
                                 \s -> let s' = addClient client s in return (s', s')
-                            let userList = T.intercalate ";" (map fst s')
+                            let userList = T.intercalate ";" (map fst s)
                             sendText (f "login" userList "@server" Nothing) client
-                            broadcast (f "connect" username "@server" Nothing) s'
+                            broadcast (f "connect" username "@server" Nothing) s
                             talk channel client
 
                     let disconnect = do
@@ -109,6 +109,10 @@ application serverState pending = do
                             s <- modifyMVar channel $
                                 \s -> let s' = removeClient client s in return (s', s')
                             broadcast (f "disconnect" username "@server" Nothing) s
+                            -- Remove channel if empty
+                            let x = if null s then Nothing else Just channel
+                            modifyMVar_ serverState $
+                                \s -> let s' = Map.update (const x) channelName s in return s'
 
                     clients <- readMVar channel
                     case message of
@@ -128,4 +132,4 @@ talk channel (username, conn) = forever $ do
             Nothing -> readMVar channel >>= broadcast json
             Just target -> readMVar channel >>= sendPM json target
             where
-                json = (f (kind message) (value message) (username) (target message))
+                json = f (kind message) (value message) (username) (target message)
