@@ -58,6 +58,20 @@ sendPM text target channel = do forM_ channel' $ sendText text
 invalidName :: Text -> Bool
 invalidName username = any ($ username) [T.null, T.any isPunctuation, T.any isSpace]
 
+getOrCreateChannel :: Text -> MVar Server -> IO (MVar Channel)
+getOrCreateChannel channelName serverReference = do
+    server <- readMVar serverReference
+    case Map.lookup channelName server of
+        Just channelReference ->
+            return channelReference
+
+        Nothing -> do
+            channelReference <- newMVar newChannel
+            modifyMVar_ serverReference $ \s -> do
+                let s' = Map.insert channelName channelReference s
+                return s'
+            return channelReference
+
 
 main :: IO ()
 main = do
@@ -78,50 +92,35 @@ application serverReference pending = do
             let channelName = value message
             let username = sender message
             let client = (username, conn)
+            channelReference <- getOrCreateChannel channelName serverReference
 
-            server <- readMVar serverReference
-            case Map.lookup channelName server of
-                Just channelReference -> return ()
-                Nothing -> do
+            let connect = do
+                    -- Append client and start talk loop
+                    s <- modifyMVar channelReference $
+                        \s -> let s' = addClient client s in return (s', s')
+                    let userList = T.intercalate ";" (map fst s)
+                    sendText (f "login" userList "@server" Nothing) client
+                    broadcast (f "connect" username "@server" Nothing) s
+                    talk channelReference client
 
-                    -- channelReference does not exist, so create it
-                    channelReference <- newMVar newChannel
-                    modifyMVar_ serverReference $ \s -> do
-                        let s' = Map.insert channelName channelReference s
-                        return s'
+            let disconnect = do
+                    -- Remove client and return new state
+                    s <- modifyMVar channelReference $
+                        \s -> let s' = removeClient client s in return (s', s')
+                    broadcast (f "disconnect" username "@server" Nothing) s
+                    -- Remove channelReference if empty
+                    let x = if null s then Nothing else Just channelReference
+                    modifyMVar_ serverReference $
+                        \s -> let s' = Map.update (const x) channelName s in return s'
 
-            server' <- readMVar serverReference
-            case Map.lookup channelName server' of
-                Nothing -> return ()
-                Just channelReference -> do
-
-                    let connect = do
-                            -- Append client and start talk loop
-                            s <- modifyMVar channelReference $
-                                \s -> let s' = addClient client s in return (s', s')
-                            let userList = T.intercalate ";" (map fst s)
-                            sendText (f "login" userList "@server" Nothing) client
-                            broadcast (f "connect" username "@server" Nothing) s
-                            talk channelReference client
-
-                    let disconnect = do
-                            -- Remove client and return new state
-                            s <- modifyMVar channelReference $
-                                \s -> let s' = removeClient client s in return (s', s')
-                            broadcast (f "disconnect" username "@server" Nothing) s
-                            -- Remove channelReference if empty
-                            let x = if null s then Nothing else Just channelReference
-                            modifyMVar_ serverReference $
-                                \s -> let s' = Map.update (const x) channelName s in return s'
-
-                    channel <- readMVar channelReference
-                    case message of
-                        _   | invalidName username ->
-                                sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
-                            | clientExists client channel ->
-                                sendText "User already exists" client
-                            | otherwise ->
-                                flip finally disconnect $ connect
+            channel <- readMVar channelReference
+            case message of
+                _   | invalidName username ->
+                        sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
+                    | clientExists client channel ->
+                        sendText "User already exists" client
+                    | otherwise ->
+                        flip finally disconnect $ connect
 
 talk :: MVar Channel -> Client -> IO ()
 talk channelReference (username, conn) = forever $ do
