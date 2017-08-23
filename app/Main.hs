@@ -1,18 +1,16 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-import qualified Data.Map as Map
 import Data.Aeson (FromJSON, ToJSON, decode, encode)
 import Data.Char (isPunctuation, isSpace)
-import Data.Maybe (isJust, isNothing)
-import Data.Monoid (mappend)
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Encoding (decodeUtf8)
+import Control.Concurrent (MVar, newMVar, modifyMVar_, modifyMVar, readMVar)
 import Control.Exception (finally)
 import Control.Monad (forM_, forever)
-import Control.Concurrent (MVar, newMVar, modifyMVar_, modifyMVar, readMVar)
 import GHC.Generics (Generic)
+import qualified Data.Map as Map
 import qualified Data.Text as T
-import qualified Data.Text.Lazy.Encoding as T
 import qualified Network.WebSockets as WS
 
 -- https://artyom.me/aeson
@@ -23,7 +21,7 @@ data Message = Message { kind :: Text, value :: Text, sender :: Text, target :: 
 
 -- Generates JSON string from components
 f :: Text -> Text -> Text -> Maybe Text -> Text
-f kind value sender target = (toStrict $ T.decodeUtf8 $ encode message)
+f kind value sender target = (toStrict $ decodeUtf8 $ encode message)
     where message = Message { kind = kind, value = value, sender = sender, target = target }
 
 instance FromJSON Message
