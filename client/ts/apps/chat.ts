@@ -56,7 +56,7 @@ var Chat = {
           makeButton(upload),
         ),
         m("details#chat-userlist",
-            m("summary#chat-usercount", `${state.users.size} online`),
+            m("summary#chat-usercount", `${state.channel} (${state.users.size} online)`),
             m("div#chat-userlist", sorted(state.users).map(u=>m("div", u))),
         ),
         m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
