@@ -5,7 +5,7 @@ import Data.Char (isPunctuation, isSpace)
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Encoding (decodeUtf8)
-import Control.Concurrent (MVar, newMVar, modifyMVar_, modifyMVar, readMVar)
+import Control.Concurrent (MVar, modifyMVar, modifyMVar_, newMVar, readMVar)
 import Control.Exception (finally)
 import Control.Monad (forM_, forever)
 import GHC.Generics (Generic)
@@ -31,14 +31,17 @@ type Client = (Text, WS.Connection)
 type Channel = [Client]
 type Server = Map.Map Text (MVar Channel)
 
+dup :: a -> (a, a)
+dup x = (x, x)
+
 newChannel :: Channel
 newChannel = []
 
+addClient :: Client -> Channel -> Channel
+addClient = (:)
+
 clientExists :: Client -> Channel -> Bool
 clientExists client = any ((== fst client) . fst)
-
-addClient :: Client -> Channel -> Channel
-addClient client channel = client : channel
 
 removeClient :: Client -> Channel -> Channel
 removeClient client = filter ((/= fst client) . fst)
@@ -59,17 +62,14 @@ invalidName username = any ($ username) [T.null, T.any isPunctuation, T.any isSp
 getOrCreateChannel :: Text -> MVar Server -> IO (MVar Channel)
 getOrCreateChannel channelName serverReference = do
     server <- readMVar serverReference
-    case Map.lookup channelName server of
-        Just channelReference ->
-            return channelReference
+    maybe channelReference return (Map.lookup channelName server)
+        where channelReference = createChannel channelName serverReference
 
-        Nothing -> do
-            channelReference <- newMVar newChannel
-            modifyMVar_ serverReference $ \s -> do
-                let s' = Map.insert channelName channelReference s
-                return s'
-            return channelReference
-
+createChannel :: Text -> MVar Server -> IO (MVar Channel)
+createChannel channelName serverReference = do
+    channelReference <- newMVar newChannel
+    modifyMVar_ serverReference (return . Map.insert channelName channelReference)
+    return channelReference
 
 main :: IO ()
 main = do
@@ -94,8 +94,7 @@ application serverReference pending = do
 
             let connect = do
                     -- Append client and start talk loop
-                    channel <- modifyMVar channelReference $
-                        \s -> let s' = addClient client s in return (s', s')
+                    channel <- modifyMVar channelReference (return . dup . addClient client)
                     let userList = T.intercalate ";" (map fst channel)
                     sendText (f "login" userList "@server" Nothing) client
                     broadcast (f "connect" username "@server" Nothing) channel
@@ -103,13 +102,11 @@ application serverReference pending = do
 
             let disconnect = do
                     -- Remove client and return new state
-                    channel <- modifyMVar channelReference $
-                        \s -> let s' = removeClient client s in return (s', s')
+                    channel <- modifyMVar channelReference (return . dup . removeClient client)
                     broadcast (f "disconnect" username "@server" Nothing) channel
                     -- Remove channelReference if empty
-                    let x = if null channel then Nothing else Just channelReference
-                    modifyMVar_ serverReference $
-                        \s -> let s' = Map.update (const x) channelName s in return s'
+                    let val = if null channel then Nothing else Just channelReference
+                    modifyMVar_ serverReference (return . Map.update (const val) channelName)
 
             channel <- readMVar channelReference
             case message of
