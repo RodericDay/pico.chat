@@ -53,7 +53,7 @@ let LoginForm = {
                 onkeyup: (e)=>{state.username=e.target.value},
                 value: state.username,
                 autocomplete: "off",
-                placeholder: "username",
+                placeholder: "pick any username!",
             }),
             m("button", {style: "display:none;"}),
         ]),

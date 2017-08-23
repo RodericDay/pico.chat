@@ -19,15 +19,21 @@ function post(e) {
         text.value = "";
     }
 }
+function renderPost(string) {
+    string = string.replace(/ (#\S+)/, (m, g)=>` [${g}](${g})`);
+    return m.trust(marked(string).replace(/a href/g, `a target="_blank" href`))
+}
+function humanize(sizeInBytes) {
+    let chunk = (u,i) => [+(sizeInBytes/Math.pow(10,3*i)).toFixed(1),u];
+    return ['B','KB','MB','GB'].map(chunk).filter(([n,u])=>n>1).pop().join('')
+}
 function refresh() {
     location.replace(location.href);
 }
 function uploadFile(event) {
     for(let file of event.target.files) {
         let reader = new FileReader();
-        // humanize filesize
-        // breaks w/ 0
-        let size = ['B','KB','MB','GB'].map((u,i)=>[+(file.size/Math.pow(10,3*i)).toFixed(1),u]).filter(([n,u])=>n>1).pop().join('');
+        let size = humanize(file.size);
         sendMessage("post", `uploading ${file.name} (${size})...`);
         reader.onload = (e) => {
             sendMessage("fileTransfer", {data: reader.result, name: file.name, size: size});
@@ -48,7 +54,7 @@ function upload() {
 /* views */
 var Chat = {
     view: () => !state.loggedIn?[]:[
-        m("div#chat-log", state.messages.map(s=>m.trust(marked(s).replace(/a href/g, `a target="_blank" href`)))),
+        m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
           makeButton(clear),
           m("input[name=text]", {autocomplete: "off"}),
