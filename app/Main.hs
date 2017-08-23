@@ -30,30 +30,30 @@ instance FromJSON Message
 instance ToJSON Message
 
 type Client = (Text, WS.Connection)
-type ChannelState = [Client]
-type ServerState = Map.Map Text (MVar ChannelState)
+type Channel = [Client]
+type Server = Map.Map Text (MVar Channel)
 
-newChannel :: ChannelState
+newChannel :: Channel
 newChannel = []
 
-clientExists :: Client -> ChannelState -> Bool
+clientExists :: Client -> Channel -> Bool
 clientExists client = any ((== fst client) . fst)
 
-addClient :: Client -> ChannelState -> ChannelState
-addClient client clients = client : clients
+addClient :: Client -> Channel -> Channel
+addClient client channel = client : channel
 
-removeClient :: Client -> ChannelState -> ChannelState
+removeClient :: Client -> Channel -> Channel
 removeClient client = filter ((/= fst client) . fst)
 
 sendText :: Text -> Client -> IO ()
 sendText text (username, conn) = do WS.sendTextData conn text
 
-broadcast :: Text -> ChannelState -> IO ()
-broadcast text clients = do forM_ clients $ sendText text
+broadcast :: Text -> Channel -> IO ()
+broadcast text channel = do forM_ channel $ sendText text
 
-sendPM :: Text -> Text -> ChannelState -> IO ()
-sendPM text target clients = do forM_ clients' $ sendText text
-    where clients' = filter ((== target) . fst) clients
+sendPM :: Text -> Text -> Channel -> IO ()
+sendPM text target channel = do forM_ channel' $ sendText text
+    where channel' = filter ((== target) . fst) channel
 
 invalidName :: Text -> Bool
 invalidName username = any ($ username) [T.null, T.any isPunctuation, T.any isSpace]
@@ -61,12 +61,12 @@ invalidName username = any ($ username) [T.null, T.any isPunctuation, T.any isSp
 
 main :: IO ()
 main = do
-    serverState <- newMVar Map.empty
+    serverReference <- newMVar Map.empty
     print "Running on port 9160"
-    WS.runServer "0.0.0.0" 9160 $ application serverState
+    WS.runServer "0.0.0.0" 9160 $ application serverReference
 
-application :: MVar ServerState -> WS.ServerApp
-application serverState pending = do
+application :: MVar Server -> WS.ServerApp
+application serverReference pending = do
     conn <- WS.acceptRequest pending
     text <- WS.receiveData conn
     WS.forkPingThread conn 30
@@ -79,57 +79,57 @@ application serverState pending = do
             let username = sender message
             let client = (username, conn)
 
-            server <- readMVar serverState
+            server <- readMVar serverReference
             case Map.lookup channelName server of
-                Just channel -> return ()
+                Just channelReference -> return ()
                 Nothing -> do
 
-                    -- channel does not exist, so create it
-                    new <- newMVar newChannel
-                    modifyMVar_ serverState $ \s -> do
-                        let s' = Map.insert channelName new s
+                    -- channelReference does not exist, so create it
+                    channelReference <- newMVar newChannel
+                    modifyMVar_ serverReference $ \s -> do
+                        let s' = Map.insert channelName channelReference s
                         return s'
 
-            server' <- readMVar serverState
+            server' <- readMVar serverReference
             case Map.lookup channelName server' of
                 Nothing -> return ()
-                Just channel -> do
+                Just channelReference -> do
 
                     let connect = do
                             -- Append client and start talk loop
-                            s <- modifyMVar channel $
+                            s <- modifyMVar channelReference $
                                 \s -> let s' = addClient client s in return (s', s')
                             let userList = T.intercalate ";" (map fst s)
                             sendText (f "login" userList "@server" Nothing) client
                             broadcast (f "connect" username "@server" Nothing) s
-                            talk channel client
+                            talk channelReference client
 
                     let disconnect = do
                             -- Remove client and return new state
-                            s <- modifyMVar channel $
+                            s <- modifyMVar channelReference $
                                 \s -> let s' = removeClient client s in return (s', s')
                             broadcast (f "disconnect" username "@server" Nothing) s
-                            -- Remove channel if empty
-                            let x = if null s then Nothing else Just channel
-                            modifyMVar_ serverState $
+                            -- Remove channelReference if empty
+                            let x = if null s then Nothing else Just channelReference
+                            modifyMVar_ serverReference $
                                 \s -> let s' = Map.update (const x) channelName s in return s'
 
-                    clients <- readMVar channel
+                    channel <- readMVar channelReference
                     case message of
                         _   | invalidName username ->
                                 sendText "Name cannot contain punctuation or whitespace, and cannot be empty" client
-                            | clientExists client clients ->
+                            | clientExists client channel ->
                                 sendText "User already exists" client
                             | otherwise ->
                                 flip finally disconnect $ connect
 
-talk :: MVar ChannelState -> Client -> IO ()
-talk channel (username, conn) = forever $ do
+talk :: MVar Channel -> Client -> IO ()
+talk channelReference (username, conn) = forever $ do
     text <- WS.receiveData conn
     case decode text :: Maybe Message of
         Nothing -> sendText "Error processing message" (username, conn)
         Just message -> case target message of
-            Nothing -> readMVar channel >>= broadcast json
-            Just target -> readMVar channel >>= sendPM json target
+            Nothing -> readMVar channelReference >>= broadcast json
+            Just target -> readMVar channelReference >>= sendPM json target
             where
                 json = f (kind message) (value message) (username) (target message)
