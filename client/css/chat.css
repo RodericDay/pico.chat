@@ -5,13 +5,13 @@
     margin: 5px;
     font-family: sans-serif;
     outline: 1px solid indigo;
-    float: right;
     width: 300px;
 }
 #chat:empty {
     visibility: hidden;
 }
 #chat-log {
+    background-color: white;
     height: 90px;
     overflow-y: scroll;
 }
