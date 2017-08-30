@@ -119,6 +119,7 @@ function isEmpty(object) {
 }
 state.actions.push(()=>isEmpty(state.streams)?streamingStop:streamingStart);
 var streamRoot = document.createElement("div");
+streamRoot.id = "streamGrid";
 document.body.appendChild(streamRoot);
 var renderStreams = function() {
     m.render(streamRoot, !state.loggedIn?[]:[

@@ -1,9 +1,17 @@
+#streamGrid {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: -999;
+    font-size: 0;
+}
 .streamContainer {
+    max-width: 50vw;
     position: relative;
     display: inline-block;
-    z-index: -999;
 }
 .streamContainer video {
+    width: 100%;
     transform: scaleX(-1);
 }
 .streamContainer .info {
