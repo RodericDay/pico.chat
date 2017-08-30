@@ -53,7 +53,7 @@ function upload() {
 }
 /* views */
 var Chat = {
-    view: () => !state.loggedIn?[]:[
+    view: () => !(state.loggedIn&&state.chatOn)?[]:[
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
           makeButton(clear),
@@ -102,6 +102,9 @@ addEventListener("fileTransfer", (e:CustomEvent)=>{
     scrollToNewest();
 });
 /* initialize */
+var chatStop = () => {state.chatOn = false}
+var chatStart = () => {state.chatOn = true}
+state.actions.push(()=>state.chatOn?chatStop:chatStart);
 var chatRoot = document.createElement("main");
 chatRoot.id = "chat";
 document.body.appendChild(chatRoot);
