@@ -6,7 +6,7 @@ function shuffle(iterable) {
     return iterable.map((x,i)=>Math.floor(Math.random()*(iterable.length-i)))
 }
 function reveal(i) {
-    cards[i][2] = true;
+    cards[i][2] = !cards[i][2];
     sendMessage("codenamesState", cards);
 }
 async function deal() {
@@ -20,44 +20,67 @@ async function deal() {
         ...Array(1).fill("gray"),
     ];
 
-    cards = [];
-    while(colors.length) {
-        let color = randomFrom(colors);
-        let word = randomFrom(randomFrom(pairs).split(','));
-        cards.push([color, word, false]);
+    if(cards.length) {
+        cards = [];
+    }
+    else {
+        while(colors.length) {
+            let color = randomFrom(colors);
+            let word = randomFrom(randomFrom(pairs).split(','));
+            cards.push([color, word, false]);
+        }
     }
 
     sendMessage("codenamesState", cards);
 }
-let cards:[string, string, boolean][] = [];
-let Game = {
-    view: () => cards.length == 0 ? [] : m("svg#grid[viewBox=0 0 5 5]", cards.map(([color, word, revealed], i) => {
-        var [x, y] = [i%5, Math.floor(i/5)];
-        var color = revealed||state.username.includes("42")?color:"beige";
-        var opacity = revealed?0.1:1;
-        return [
-            m("rect", {fill:color, x:x+0.05, y:y+0.05, height:0.9, width:0.9, onclick:()=>reveal(i)}),
-            m("text", {opacity:opacity, x:x+0.5, y:y+0.5,
-                style: {
-                    "pointer-events": "none",
-                    "user-select": "none",
-                },
-                "font-size":0.15,
-                "text-anchor":"middle",
-                "dominant-baseline":"mathematical"}, word),
-        ]}),
-    ),
+function Card(i, color, word, revealed) {
+    let spymaster = state.username.includes("42");
+    let style = {
+        "text-align": "center",
+        "padding": "5px",
+        "user-select": "none",
+        "text-decoration": revealed ? "line-through" : "",
+        "background-color": revealed||spymaster ? color : "beige",
+    }
+    return m("span", {onclick: ()=>{reveal(i)}, style: style}, word)
 }
+let Game = {
+    view: () => {
+        let containerStyle = {
+            "position": "fixed",
+            "bottom": "100px",
+            "left": "0",
+            "right": "0",
+            "margin": "0 auto",
+            "max-width": "800px",
+            "font-size": "smaller",
+        };
+        let gridStyle = {
+            "display": "grid",
+            "grid-template-columns": "1fr 1fr 1fr 1fr 1fr",
+        };
+        let rendered = cards.map(([a,b,c], i)=>Card(i,a,b,c));
+        let undercover = cards.filter((card)=>card[2]===false);
+        let blueLeft = undercover.filter((card)=>card[0]==="steelblue").length;
+        let redLeft = undercover.filter((card)=>card[0]==="crimson").length;
+        return !cards.length?[]:m("div", {style: containerStyle}, [
+            `${blueLeft} blue, ${redLeft} red left to go`,
+            m("div.grid", {style: gridStyle}, rendered)
+        ])
+    }
+}
+let cards:[string, string, boolean][] = [];
 state.actions.push(deal);
 let gameRoot = document.createElement("div");
 document.body.appendChild(gameRoot);
 m.mount(gameRoot, Game);
 addEventListener("logout", (e)=>{cards=[]; m.redraw();});
-addEventListener("connect", (e:CustomEvent)=>{if(cards.length){sendMessage("codenamesState", cards, e.detail.value)}});
+addEventListener("connect", (e:CustomEvent)=>{
+    if(cards.length){
+        sendMessage("codenamesState", cards, e.detail.value)
+    }
+});
 addEventListener("codenamesState", (e:CustomEvent)=>{
     cards = e.detail.value;
-    let blueLeft = cards.filter((card)=>card[0]==="steelblue"&&card[2]===false).length;
-    let redLeft = cards.filter((card)=>card[0]==="crimson"&&card[2]===false).length;
-    state.status = `${blueLeft} blue, ${redLeft} red left to go`;
     m.redraw()
 });
