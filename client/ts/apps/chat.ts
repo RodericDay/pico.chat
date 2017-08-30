@@ -84,6 +84,7 @@ addEventListener("disconnect", (e:CustomEvent)=>{
     m.redraw();
 });
 addEventListener("post", (e:CustomEvent)=>{
+    if(!document.hasFocus()&&document.title===state.title){document.title+=' (!)'}
     state.messages.push(`${e.detail.sender}: ${e.detail.value}`);
     localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
@@ -100,6 +101,9 @@ addEventListener("fileTransfer", (e:CustomEvent)=>{
     localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
     scrollToNewest();
+});
+addEventListener("focus", (e)=>{
+    document.title = state.title;
 });
 /* initialize */
 var chatStop = () => {state.chatOn = false}

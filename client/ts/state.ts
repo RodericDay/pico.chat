@@ -1,4 +1,5 @@
 let defaults = {
+    title: document.title,
     channel: location.hash,
     username: "",
     loggedIn: false,
