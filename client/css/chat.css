@@ -6,6 +6,7 @@
     font-family: sans-serif;
     outline: 1px solid indigo;
     width: 300px;
+    z-index: 999;
 }
 #chat:empty {
     visibility: hidden;
