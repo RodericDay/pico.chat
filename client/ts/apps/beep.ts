@@ -11,12 +11,11 @@ if(window["AudioContext"]) {
     oscillator.start(0);
 }
 function beep() {
-    if(!document.hasFocus() && gainNode && state.notificationsOn){
+    // if chat is on, but window is not focused, notify
+    // if chat is off, but window is focused, notify
+    if(gainNode && (document.hasFocus()!==state.chatOn)){
         gainNode.gain.value = 0.5;
         setTimeout(()=>{gainNode.gain.value = 0}, 150);
     }
 }
-var beepStop = () => {state.notificationsOn = false}
-var beepStart = () => {state.notificationsOn = true}
-state.actions.push(()=>state.notificationsOn?beepStop:beepStart);
 addEventListener("post", beep);

@@ -3,7 +3,6 @@ let defaults = {
     username: "",
     loggedIn: false,
     chatOn: true,
-    notificationsOn: false,
     ws: null,
     users: new Set(),
     messages: [],
