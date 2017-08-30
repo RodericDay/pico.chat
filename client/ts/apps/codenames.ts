@@ -74,13 +74,5 @@ state.actions.push(deal);
 let gameRoot = document.createElement("div");
 document.body.appendChild(gameRoot);
 m.mount(gameRoot, Game);
+sync("codenamesState", "cards");
 addEventListener("logout", (e)=>{cards=[]; m.redraw();});
-addEventListener("connect", (e:CustomEvent)=>{
-    if(cards.length){
-        sendMessage("codenamesState", cards, e.detail.value)
-    }
-});
-addEventListener("codenamesState", (e:CustomEvent)=>{
-    cards = e.detail.value;
-    m.redraw()
-});

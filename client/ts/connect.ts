@@ -33,6 +33,18 @@ function sendMessage(kind, value, target=undefined) {
     }
     state.ws.send(JSON.stringify({kind: kind, value: value, sender: state.username, target: target}));
 }
+function sync(eventName, objectName) {
+    // helper for emission and modification of serialized objects
+    addEventListener("connect", (e:CustomEvent)=>{
+        if(e.detail.value!==state.username){
+            sendMessage(eventName, window[objectName], e.detail.value);
+        }
+    });
+    addEventListener(eventName, (e:CustomEvent)=>{
+        window[objectName] = e.detail.value;
+        m.redraw()
+    });
+}
 function login(event) {
     event.preventDefault();
     openConnection();
