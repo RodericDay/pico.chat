@@ -6,7 +6,7 @@ let defaults = {
     chatOn: true,
     ws: null,
     users: new Set(),
-    messages: [],
+    messages: ["**Tip**: Address a user privately with `@`, and create new channels with `#`."],
     actions: [],
     status: "",
     peers: <{[username: string]: RTCPeerConnection}>{},
@@ -23,3 +23,4 @@ for(let key of Object.keys(defaults)) {
     catch(error) {
     }
 }
+localStorage.removeItem("messages");
