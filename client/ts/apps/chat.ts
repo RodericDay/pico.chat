@@ -106,6 +106,7 @@ addEventListener("focus", (e)=>{
     document.title = state.title;
 });
 /* initialize */
+marked.setOptions({sanitize: true});
 var chatStop = () => {state.chatOn = false}
 var chatStart = () => {state.chatOn = true}
 state.actions.push(()=>state.chatOn?chatStop:chatStart);
