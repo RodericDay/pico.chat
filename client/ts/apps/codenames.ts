@@ -47,6 +47,8 @@ function Card(i, color, word, revealed) {
 let Game = {
     view: () => {
         let containerStyle = {
+            "background-color": "peru",
+            "padding": "2px",
             "position": "fixed",
             "bottom": "100px",
             "left": "0",
@@ -54,10 +56,12 @@ let Game = {
             "margin": "0 auto",
             "max-width": "800px",
             "font-size": "smaller",
+            "font-family": "sans-serif",
         };
         let gridStyle = {
             "display": "grid",
             "grid-template-columns": "1fr 1fr 1fr 1fr 1fr",
+            "grid-gap": "1px",
         };
         let rendered = cards.map(([a,b,c], i)=>Card(i,a,b,c));
         let undercover = cards.filter((card)=>card[2]===false);
