@@ -62,7 +62,7 @@ let LoginForm = {
         return [
         m("form[name=login]", {onsubmit: login}, [
             m("input[name=username]", {
-                onkeyup: (e)=>{state.username=e.target.value},
+                oninput: (e)=>{state.username=e.target.value},
                 value: state.username,
                 autocomplete: "off",
                 placeholder: "pick any username!",

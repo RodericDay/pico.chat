@@ -63,7 +63,7 @@ var Chat = {
         ),
         m("details#chat-userlist",
             m("summary#chat-usercount", `${state.channel||"lobby"} (${state.users.size} online)`),
-            m("div#chat-userlist", sorted(state.users).join(', ')),
+            m("div", sorted(state.users).join(', ')),
         ),
         m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
     ]

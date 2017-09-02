@@ -4,7 +4,7 @@
     right: 0;
     margin: 5px;
     font-family: sans-serif;
-    outline: 1px solid indigo;
+    font-size: small;
     width: 300px;
     z-index: 999;
 }
@@ -18,6 +18,10 @@
 }
 #chat-log p {
     margin: 5px;
+}
+#chat-userlist {
+    border: 1px solid indigo;
+    background-color: thistle;
 }
 #chat-usercount {
     background-color: indigo;
