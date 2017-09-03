@@ -14,8 +14,11 @@ function clear() {
 function post(e) {
     e.preventDefault();
     let text = document.getElementById("chat-form")["text"];
-    let [msg, target] = text.value.match(/^@(\w+) ./)||[text.value,null];
-    if(target&&!state.users.has(target)) {
+    let [msg, target] = text.value.match(/^@(\w+)/)||[text.value,null];
+    if(target&&text.value.trim()===`@${target}`) {
+        // pass, assume user still typing
+    }
+    else if(target&&!state.users.has(target)) {
         alert(`${target} not in channel.`)
     }
     else if(target) {//private
