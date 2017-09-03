@@ -3,6 +3,7 @@ let defaults = {
     channel: location.hash,
     username: "",
     loggedIn: false,
+    chessOn: false,
     chatOn: true,
     ws: null,
     users: new Set(),
