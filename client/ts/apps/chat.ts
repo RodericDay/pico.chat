@@ -8,6 +8,7 @@ function clear() {
     var msg = `You sure you want to delete ${state.messages.length} messages?`
     if(confirm(msg)) {
         state.messages = [];
+        localStorage.removeItem("messages");
     }
 }
 function post(e) {
@@ -94,6 +95,7 @@ addEventListener("disconnect", (e:CustomEvent)=>{
 addEventListener("post", (e:CustomEvent)=>{
     if(!document.hasFocus()&&document.title===state.title){document.title+=' (!)'}
     state.messages.push(`${e.detail.sender}: ${e.detail.value}`);
+    localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
     scrollToNewest();
 });
@@ -105,6 +107,7 @@ addEventListener("fileTransfer", (e:CustomEvent)=>{
     let fileAnchor = `<a download="${file.name}" href="${fileUrl}">${file.name} (${file.size})</a>`;
     let anchor = `${e.detail.sender}: ${fileAnchor}`;
     state.messages.push(anchor);
+    localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
     scrollToNewest();
 });

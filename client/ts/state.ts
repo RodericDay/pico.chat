@@ -24,4 +24,3 @@ for(let key of Object.keys(defaults)) {
     catch(error) {
     }
 }
-localStorage.removeItem("messages");
