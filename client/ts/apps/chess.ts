@@ -58,4 +58,3 @@ let makePiece = ([c,x,y,z],i) => {
 m.mount(board, {view:()=>!state.chessOn?[]:[m("style", css), ...tiles.map(makeTile), ...pieces.map(makePiece)]});
 sync("chessState", "pieces");
 var chess = () => {state.chessOn = !state.chessOn};
-state.actions.push(()=>chess);

@@ -68,10 +68,10 @@ var Chat = {
     view: () => !(state.loggedIn&&state.chatOn)?[]:[
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
-          makeButton(clear),
+          m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
           m("input[name=text]", {autocomplete: "off"}),
-          makeButton(post),
-          makeButton(upload),
+          m("img", {onclick: post, src: "svg/post.svg", title: "post message"}),
+          m("img", {onclick: upload, src: "svg/upload.svg", title: "upload file"}),
         ),
         m("details#chat-userlist",
             m("summary#chat-usercount", `${state.channel||"lobby"} (${state.users.size} online)`),
@@ -119,9 +119,6 @@ addEventListener("focus", (e)=>{
 });
 /* initialize */
 marked.setOptions({sanitize: true});
-var chatStop = () => {state.chatOn = false}
-var chatStart = () => {state.chatOn = true}
-state.actions.push(()=>state.chatOn?chatStop:chatStart);
 var chatRoot = document.createElement("main");
 chatRoot.id = "chat";
 document.body.appendChild(chatRoot);

@@ -117,7 +117,6 @@ var viewStream = (username) => {
 function isEmpty(object) {
     return Object.keys(state.streams).length > 0
 }
-state.actions.push(()=>isEmpty(state.streams)?streamingStop:streamingStart);
 var streamRoot = document.createElement("div");
 streamRoot.id = "streamGrid";
 document.body.appendChild(streamRoot);

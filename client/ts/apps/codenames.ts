@@ -74,7 +74,6 @@ let Game = {
     }
 }
 let cards:[string, string, boolean][] = [];
-state.actions.push(deal);
 let gameRoot = document.createElement("div");
 document.body.appendChild(gameRoot);
 m.mount(gameRoot, Game);

@@ -53,34 +53,36 @@ function logout() {
     state.status = "";
     state.ws.close();
 }
-function makeButton(f) {
-    if(!f.name){f=f()} /* allow toggle-able functions according to conditional */
-    return m("img", {src: `svg/${f.name}.svg`, onclick: f, title: f.name})
-}
 let LoginForm = {
     view: function() {
         return [
-        m("form[name=login]", {onsubmit: login}, [
-            m("input[name=username]", {
-                oninput: (e)=>{state.username=e.target.value},
-                value: state.username,
-                autocomplete: "off",
-                placeholder: "pick any username!",
-            }),
-            m("button", {style: "display:none;"}),
-        ]),
-        makeButton(login),
+            m("form[name=login]", {onsubmit: login}, [
+                m("input[name=username]", {
+                    oninput: (e)=>{state.username=e.target.value},
+                    value: state.username,
+                    autocomplete: "off",
+                    placeholder: "pick any username!",
+                }),
+                m("button", {style: "display:none;"}),
+            ]),
+            m("img", {src: "svg/login.svg", onclick: login, title: "log in"}),
         ]
     }
 }
 let StatusBar = {
     view: function() {
-            return [
-                state.loggedIn
-                ? state.actions.slice().reverse().map(makeButton)
-                : LoginForm.view(),
-            ]
-        }
+        return [
+            ! state.loggedIn
+            ? LoginForm.view()
+            : [
+                m("img", {style: {opacity: state.chessOn?1:0.5}, src: "svg/chess.svg", onclick: ()=>state.chessOn=!state.chessOn, title: "chess"}),
+                m("img", {style: {opacity: cards.length?1:0.5}, src: "svg/deal.svg", onclick: deal, title: "codenames"}),
+                m("img", {style: {opacity: isEmpty(state.streams)?1:0.5}, src: "svg/stream.svg", onclick: ()=>isEmpty(state.streams)?streamingStop():streamingStart(), title: "stream"}),
+                m("img", {style: {opacity: state.chatOn?1:0.5}, src: "svg/chat.svg", onclick: ()=>state.chatOn=!state.chatOn, title: "chat"}),
+                m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
+            ],
+        ]
+    }
 }
 addEventListener("socketError", (e:CustomEvent) => {
     alert(e.detail.value);
@@ -101,7 +103,6 @@ addEventListener("logout", (e:CustomEvent) => {
     state.loggedIn = false;
     m.redraw();
 });
-state.actions.push(logout);
 var statusBar = document.createElement("footer");
 document.body.appendChild(statusBar);
 m.mount(statusBar, StatusBar);
