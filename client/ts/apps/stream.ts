@@ -103,6 +103,16 @@ async function streamingStop() {
     sendMessage("peerInfo", {sdp: {type: "stop"}});
     m.redraw();
 }
+function isEmpty(object) {
+    return Object.keys(state.streams).length > 0
+}
+function onPeerVolume(e:CustomEvent) {
+    let div = document.querySelector(`.streamContainer .info.${e.detail.sender}`);
+    let isSpeaking = e.detail.value;
+    if(div) {
+        isSpeaking ? div.classList.add("loud") : div.classList.remove("loud");
+    }
+}
 var viewStream = (username) => {
     var localConfig = {
         srcObject: state.streams[username],
@@ -114,21 +124,9 @@ var viewStream = (username) => {
         m(`div.info.${username}`, username),
     )
 }
-function isEmpty(object) {
-    return Object.keys(state.streams).length > 0
-}
-var streamRoot = document.createElement("div");
-streamRoot.id = "streamGrid";
-document.body.appendChild(streamRoot);
-m.mount(streamRoot, {view:()=>!state.loggedIn?[]:[
-    Object.keys(state.streams).sort().map(viewStream),
-]});
-function onPeerVolume(e:CustomEvent) {
-    let div = document.querySelector(`.streamContainer .info.${e.detail.sender}`);
-    let isSpeaking = e.detail.value;
-    if(div) {
-        isSpeaking ? div.classList.add("loud") : div.classList.remove("loud");
-    }
+let Streams = {
+    view: ()=>
+        m("div#streamGrid", Object.keys(state.streams).sort().map(viewStream))
 }
 addEventListener("peerVolume", onPeerVolume);
 addEventListener("peerInfo", onPeerInfo);

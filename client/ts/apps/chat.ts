@@ -65,7 +65,7 @@ function upload() {
 }
 /* views */
 var Chat = {
-    view: () => !(state.loggedIn&&state.chatOn)?[]:[
+    view: () => !state.chatOn?[]:m("div#chat", [
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
           m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
@@ -78,7 +78,7 @@ var Chat = {
             m("div", sorted(state.users).join(', ')),
         ),
         m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
-    ]
+    ])
 }
 /* listeners */
 addEventListener("login", (e:CustomEvent)=>{
@@ -119,7 +119,3 @@ addEventListener("focus", (e)=>{
 });
 /* initialize */
 marked.setOptions({sanitize: true});
-var chatRoot = document.createElement("main");
-chatRoot.id = "chat";
-document.body.appendChild(chatRoot);
-m.mount(chatRoot, Chat);

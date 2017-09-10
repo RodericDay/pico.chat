@@ -44,7 +44,7 @@ function Card(i, color, word, revealed) {
     }
     return m("span", {onclick: ()=>{reveal(i)}, style: style}, word)
 }
-let Game = {
+let Codenames = {
     view: () => {
         let containerStyle = {
             "background-color": "peru",
@@ -74,8 +74,5 @@ let Game = {
     }
 }
 let cards:[string, string, boolean][] = [];
-let gameRoot = document.createElement("div");
-document.body.appendChild(gameRoot);
-m.mount(gameRoot, Game);
 sync("codenamesState", "cards");
 addEventListener("logout", (e)=>{cards=[]; m.redraw();});

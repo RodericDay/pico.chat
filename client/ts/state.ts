@@ -23,3 +23,15 @@ for(let key of Object.keys(defaults)) {
     catch(error) {
     }
 }
+let app = document.createElement("div");
+document.body.appendChild(app);
+let Main = {
+    view: ()=>
+        state.loggedIn
+        ? [m(StatusBar), m(Chat), m(Streams), m(Codenames), m(Chess)]
+        : [m(Login)]
+}
+addEventListener("load", ()=>{
+    m.mount(app, Main)
+    if(state.username){openConnection()};
+});

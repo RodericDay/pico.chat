@@ -28,9 +28,6 @@ let css = `
         position: absolute;
     }
 `;
-let board = document.createElement("board");
-board.className = "board";
-document.body.appendChild(board);
 let makeTile = (color,i) => {
     let attributes = {
         style: {backgroundColor: color},
@@ -55,6 +52,8 @@ let makePiece = ([c,x,y,z],i) => {
     };
     return m("div.piece[draggable]", attributes, c)
 };
-m.mount(board, {view:()=>!state.chessOn?[]:[m("style", css), ...tiles.map(makeTile), ...pieces.map(makePiece)]});
+let Chess = {
+    view:()=>!state.chessOn?[]:[m("style", css), m(".board", ...tiles.map(makeTile), ...pieces.map(makePiece))]
+}
 sync("chessState", "pieces");
 var chess = () => {state.chessOn = !state.chessOn};
