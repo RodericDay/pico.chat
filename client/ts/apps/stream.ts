@@ -6,7 +6,7 @@ function getPeer(username) {
             if(rpc.iceConnectionState === "failed") {
                 closePeer(username);
             }
-            renderStreams();
+            m.redraw();
         }
         rpc.onicecandidate = (e) => {
             if(rpc.iceGatheringState === "complete") {
@@ -15,13 +15,13 @@ function getPeer(username) {
         }
         (rpc as any).ontrack = (e) => {
             state.streams[username] = e.streams[0];
-            renderStreams();
+            m.redraw();
         }
         state.peers[username] = rpc;
     }
     return state.peers[username]
 }
-function onPeer(event) {
+function onPeerInfo(event) {
     console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
     if(event.detail.sender !== state.username) {
         var rpc = getPeer(event.detail.sender);
@@ -39,7 +39,7 @@ function onPeer(event) {
     else if(rpc && event.detail.value.sdp.type === "stop") {
         closePeer(event.detail.sender);
     }
-    renderStreams();
+    m.redraw();
 }
 function closePeer(username) {
     if(state.streams[username]) {
@@ -120,22 +120,17 @@ function isEmpty(object) {
 var streamRoot = document.createElement("div");
 streamRoot.id = "streamGrid";
 document.body.appendChild(streamRoot);
-var renderStreams = function() {
-    m.render(streamRoot, !state.loggedIn?[]:[
-        Object.keys(state.streams).sort().map(viewStream),
-    ])
-}
-function onVolume(e:CustomEvent) {
+m.mount(streamRoot, {view:()=>!state.loggedIn?[]:[
+    Object.keys(state.streams).sort().map(viewStream),
+]});
+function onPeerVolume(e:CustomEvent) {
     let div = document.querySelector(`.streamContainer .info.${e.detail.sender}`);
     let isSpeaking = e.detail.value;
     if(div) {
         isSpeaking ? div.classList.add("loud") : div.classList.remove("loud");
     }
 }
-window.addEventListener("peerVolume", onVolume);
-window.addEventListener("peerInfo", onPeer);
-window.addEventListener("connect", renderStreams);
-window.addEventListener("disconnect", (e:CustomEvent)=>{closePeer(e.detail.value)});
-window.addEventListener("disconnect", renderStreams);
-window.addEventListener("logout", streamingStop);
-window.addEventListener("logout", renderStreams);
+addEventListener("peerVolume", onPeerVolume);
+addEventListener("peerInfo", onPeerInfo);
+addEventListener("disconnect", (e:CustomEvent)=>{closePeer(e.detail.value)});
+addEventListener("logout", streamingStop);
