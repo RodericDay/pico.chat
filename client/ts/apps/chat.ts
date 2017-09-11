@@ -35,23 +35,8 @@ function renderPost(string) {
     string = string.replace(/ (#\w+)/, (m, g)=>` [${g}](${g})`);
     return m.trust(marked(string).replace(/a href/g, `a target="_blank" href`))
 }
-function humanize(sizeInBytes) {
-    let chunk = (u,i) => [+(sizeInBytes/Math.pow(10,3*i)).toFixed(1),u];
-    return ['B','KB','MB','GB'].map(chunk).filter(([n,u])=>n>1).pop().join('')
-}
 function refresh() {
     location.replace(location.href);
-}
-function uploadFile(event) {
-    for(let file of event.target.files) {
-        let reader = new FileReader();
-        let size = humanize(file.size);
-        sendMessage("post", `uploading ${file.name} (${size})...`);
-        reader.onload = (e) => {
-            sendMessage("fileTransfer", {data: reader.result, name: file.name, size: size});
-        }
-        reader.readAsBinaryString(file);
-    }
 }
 function scrollToNewest() {
     var _ = function() {
@@ -59,9 +44,6 @@ function scrollToNewest() {
         if(el) { el.scrollTop = el.scrollHeight; }
     }
     window.setTimeout(_, 100);
-}
-function upload() {
-    (document.getElementById("fileInput") as HTMLInputElement).click();
 }
 /* views */
 var Chat = {
@@ -71,13 +53,11 @@ var Chat = {
           m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
           m("input[name=text]", {autocomplete: "off"}),
           m("img", {onclick: post, src: "svg/post.svg", title: "post message"}),
-          m("img", {onclick: upload, src: "svg/upload.svg", title: "upload file"}),
         ),
         m("details#chat-userlist",
             m("summary#chat-usercount", `${state.channel||"lobby"} (${state.users.size} online)`),
             m("div", sorted(state.users).join(', ')),
         ),
-        m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
     ])
 }
 /* listeners */
@@ -98,18 +78,6 @@ addEventListener("disconnect", (e:CustomEvent)=>{
 addEventListener("post", (e:CustomEvent)=>{
     if(!document.hasFocus()&&document.title===state.title){document.title+=' (!)'}
     state.messages.push(`${e.detail.sender}: ${e.detail.value}`);
-    localStorage.messages = JSON.stringify(state.messages);
-    m.redraw();
-    scrollToNewest();
-});
-addEventListener("fileTransfer", (e:CustomEvent)=>{
-    let file = e.detail.value;
-    let array = new Uint8Array(file.data.length).fill(0).map((_,i)=>file.data.charCodeAt(i));
-    let blob = new Blob([array]);
-    let fileUrl = URL.createObjectURL(blob);
-    let fileAnchor = `<a download="${file.name}" href="${fileUrl}">${file.name} (${file.size})</a>`;
-    let anchor = `${e.detail.sender}: ${fileAnchor}`;
-    state.messages.push(anchor);
     localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
     scrollToNewest();
