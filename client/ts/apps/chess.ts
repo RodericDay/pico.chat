@@ -26,6 +26,8 @@ let css = `
         align-items: center;
         justify-content: center;
         position: absolute;
+        transition: transform 0.5s;
+        transform: translate(0px, 0px);
     }
 `;
 let makeTile = (color,i) => {
@@ -45,7 +47,7 @@ let makeTile = (color,i) => {
 }
 let makePiece = ([c,x,y,z],i) => {
     let attributes = {
-        style: {left: x*25+"px", top: y*25+"px", zIndex: z},
+        style: {transform: `translate(${x*25}px, ${y*25}px`, zIndex: z},
         ondragstart: (e)=>{
             e.dataTransfer.setData("dummy", i);
         },

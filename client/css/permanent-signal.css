@@ -1,3 +1,6 @@
+#app > * {
+    box-shadow: 0px 0px 10px black;
+}
 #chat {
     position: fixed;
     top: 0;

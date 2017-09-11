@@ -24,6 +24,7 @@ for(let key of Object.keys(defaults)) {
     }
 }
 let app = document.createElement("div");
+app.id = "app";
 document.body.appendChild(app);
 let Main = {
     view: ()=>
