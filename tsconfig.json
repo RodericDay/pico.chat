@@ -1,8 +1,7 @@
 {
-    "exclude": [], // dump compiled files in the parent folder
     "compilerOptions": {
         "target": "es5",
-        "outDir": "client/js",
+        "out": "client/js/permanent-signal.js",
         "typeRoots": ["/usr/local/lib/node_modules/@types/"],
         "types": ["marked", "mithril-global"],
         "lib": ["es2016", "dom"] // or es6 instead of es2016(es7)
