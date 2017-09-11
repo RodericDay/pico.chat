@@ -1,3 +1,7 @@
+const UserStrings = {
+    largeFile: "You are uploading a large file. This may disrupt your connection. Proceed?",
+    introMessage: "**Tip**: Address users privately with `@`, and link to other channels with `#`.",
+}
 let defaults = {
     title: document.title,
     channel: location.hash,
@@ -7,7 +11,7 @@ let defaults = {
     chatOn: true,
     ws: null,
     users: new Set(),
-    messages: ["**Tip**: Address users privately with `@`, and link to other channels with `#`."],
+    messages: [UserStrings.introMessage],
     uploads: [],
     status: "",
     peers: <{[username: string]: RTCPeerConnection}>{},
@@ -32,7 +36,6 @@ let StatusBar = {
         m("img", {src: "svg/chess.svg", style: {opacity: state.chessOn?1:0.5}, onclick: ()=>state.chessOn=!state.chessOn, title: "chess"}),
         m("img", {src: "svg/deal.svg", style: {opacity: cards.length?1:0.5}, onclick: deal, title: "codenames"}),
         m("img", {src: "svg/stream.svg", style: {opacity: isEmpty(state.streams)?1:0.5}, onclick: ()=>isEmpty(state.streams)?streamingStop():streamingStart(), title: "stream"}),
-        m("img", {src: "svg/upload.svg", onclick: upload, title: "upload file"}),
         m("img", {src: "svg/chat.svg", style: {opacity: state.chatOn?1:0.5}, onclick: ()=>state.chatOn=!state.chatOn, title: "chat"}),
         m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
 ])
@@ -40,7 +43,7 @@ let StatusBar = {
 let Main = {
     view: ()=>
         state.loggedIn
-        ? [m(StatusBar), m(Chat), m(Streams), m(Upload), m(Codenames), m(Chess)]
+        ? [m(StatusBar), m(Chat), m(Streams), m(Codenames), m(Chess)]
         : [m(Login)]
 }
 addEventListener("load", ()=>{

@@ -17,22 +17,13 @@ function uploadFile(event) {
 function upload() {
     (document.getElementById("fileInput") as HTMLInputElement).click();
 }
-const UserStrings = {
-    largeFile: "You are uploading a large file. This may disrupt your connection. Proceed?",
-}
 let Upload = {
-    style: {
-        "background-color": "white",
-    },
     view: ()=>[
         m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
-        m("table", {style: Upload.style},
-            state.uploads.map(([name, url, size], i)=>m("tr", [
-                m("td", m("a", {download: name, href: url}, name)),
-                m("td", m("span", size)),
-                m("td", m("span", {onclick: ()=>state.uploads.splice(i, 1)}, "❌")),
-            ]))
-        )
+        state.uploads.map(([name, url, size], i)=>[
+                m("a", {download: name, href: url}, `${name} (${size})`),
+            ]
+        ),
    ]
 }
 addEventListener("fileTransfer", (e:CustomEvent)=>{
