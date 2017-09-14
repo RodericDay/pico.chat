@@ -1,11 +1,3 @@
-function login(event) {
-    event.preventDefault();
-    openConnection(state.username, state.channel);
-}
-function logout() {
-    state.status = "";
-    ws.close();
-}
 let Login = {
     view: function() {
         return m("footer", [
@@ -53,11 +45,4 @@ addEventListener("login", (e:CustomEvent) => {
 addEventListener("logout", (e:CustomEvent) => {
     state.loggedIn = false;
     m.redraw();
-});
-addEventListener("load", ()=>{
-    let app = document.createElement("div");
-    app.id = "app";
-    document.body.appendChild(app);
-    m.mount(app, Main)
-    if(state.username){openConnection(state.username, state.channel)};
 });

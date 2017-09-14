@@ -37,7 +37,6 @@ function openConnection(username, channel) {
     ws.onerror = (error) => {
         dispatchEvent(new CustomEvent("socketError", {detail: error}));
     }
-    return ws
 }
 function sync(eventName, objectName) {
     // helper for emission and modification of serialized objects

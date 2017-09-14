@@ -1,8 +1,12 @@
-function sorted(set) {
-    /* Combination of TypeScript, Sets, and ES5 needs a workaround */
-    var sortable = [];
-    set.forEach(item=>sortable.push(item));
-    return sortable.sort()
+marked.setOptions({sanitize: true});
+
+function login(event) {
+    event.preventDefault();
+    openConnection(state.username, state.channel);
+}
+function logout() {
+    state.status = "";
+    ws.close();
 }
 function clear() {
     var msg = `You sure you want to delete ${state.messages.length} messages?`
@@ -34,9 +38,6 @@ function post(e) {
 function renderPost(string) {
     string = string.replace(/ (#\w+)/, (m, g)=>` [${g}](${g})`);
     return m.trust(marked(string).replace(/a href/g, `a target="_blank" href`))
-}
-function refresh() {
-    location.replace(location.href);
 }
 function scrollToNewest() {
     var _ = function() {
@@ -79,6 +80,7 @@ addEventListener("disconnect", (e:CustomEvent)=>{
 });
 addEventListener("post", (e:CustomEvent)=>{
     if(!document.hasFocus()&&document.title===state.title){document.title+=' (!)'}
+    if(document.hasFocus()!==state.chatOn){beep()};
     state.messages.push(`${e.detail.sender}: ${e.detail.value}`);
     localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
@@ -87,5 +89,3 @@ addEventListener("post", (e:CustomEvent)=>{
 addEventListener("focus", (e)=>{
     document.title = state.title;
 });
-/* initialize */
-marked.setOptions({sanitize: true});

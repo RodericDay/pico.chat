@@ -5,7 +5,6 @@ let config = {
     ],
     media: {audio: true, video: {width: 320, height: 240, facingMode: "user"}},
 }
-
 function getPeer(username) {
     if(!state.peers[username] && state.streams[state.username]) {
         var rpc = new RTCPeerConnection({iceServers: config.iceServers});
@@ -61,35 +60,6 @@ function closePeer(username) {
         delete state.peers[username];
     }
 }
-function detectAudio(stream) {
-    let audioContext = new AudioContext();
-    let analyser = audioContext.createAnalyser();
-    let microphone = audioContext.createMediaStreamSource(stream);
-    let javascriptNode = audioContext.createScriptProcessor(256, 1, 1);
-
-    analyser.smoothingTimeConstant = 0;
-
-    microphone.connect(analyser);
-    analyser.connect(javascriptNode);
-    javascriptNode.connect(audioContext.destination);
-
-    let timeout = null;
-    let isSpeaking = false;
-
-    javascriptNode.onaudioprocess = function() {
-        if(timeout===null) {
-            let array =  new Uint8Array(analyser.frequencyBinCount);
-            analyser.getByteFrequencyData(array);
-            let volume = array.reduce((a,b)=>(a+b));
-            let isSpeakingCheck = volume > 1000;
-            if(isSpeaking !== isSpeakingCheck) {
-                isSpeaking = isSpeakingCheck;
-                sendMessage("peerVolume", isSpeaking);
-            }
-            timeout = setTimeout(()=>{timeout=null}, 500);
-        }
-    }
-}
 async function streamingStart() {
     if(!navigator.mediaDevices) {
         alert("Your browser does not support WebRTC!");
@@ -110,9 +80,6 @@ async function streamingStop() {
     closePeer(state.username);
     sendMessage("peerInfo", {sdp: {type: "stop"}});
     m.redraw();
-}
-function isEmpty(object) {
-    return Object.keys(state.streams).length > 0
 }
 function onPeerVolume(e:CustomEvent) {
     let div = document.querySelector(`.streamContainer .info.${e.detail.sender}`);
