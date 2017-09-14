@@ -1,3 +1,11 @@
+let config = {
+    iceServers: [
+        {urls: ['stun:stun.l.google.com:19302']},
+        {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter2'},
+    ],
+    media: {audio: true, video: {width: 320, height: 240, facingMode: "user"}},
+}
+
 function getPeer(username) {
     if(!state.peers[username] && state.streams[state.username]) {
         var rpc = new RTCPeerConnection({iceServers: config.iceServers});
