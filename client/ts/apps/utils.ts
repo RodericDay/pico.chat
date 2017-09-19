@@ -50,7 +50,7 @@ function humanize(sizeInBytes) {
     return ['B','KB','MB','GB'].map(chunk).filter(([n,u])=>n>1).pop().join(' ')
 }
 function isEmpty(object) {
-    return Object.keys(state.streams).length > 0
+    return Object.keys(object).length > 0
 }
 function refresh() {
     location.replace(location.href);

@@ -1,39 +1,54 @@
-let config = {
+let peerConfig = {
     iceServers: [
         {urls: ['stun:stun.l.google.com:19302']},
         {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter2'},
     ],
     media: {audio: true, video: {width: 320, height: 240, facingMode: "user"}},
 }
+let peerConnections:{[username: string]: RTCPeerConnection} = {};
+let peerStreams:{[username: string]: MediaStream} = {};
+let peerDataChannels:{[username: string]: any} = {};
 function getPeer(username) {
-    if(!state.peers[username] && state.streams[state.username]) {
-        var rpc = new RTCPeerConnection({iceServers: config.iceServers});
-        rpc.addStream(state.streams[state.username]);
+    if(!peerConnections[username] && peerStreams[state.username]) {
+        let rpc = new RTCPeerConnection({iceServers: peerConfig.iceServers});
+
+        let myStream = peerStreams[wsUser];
+        if(myStream) { rpc.addStream(myStream) }
+
+        let chan = (rpc as any).createDataChannel("data");
+        chan.onmessage = (e) => console.log(e.data);
+        peerDataChannels[username] = chan;
+
         rpc.oniceconnectionstatechange = (e) => {
             if(rpc.iceConnectionState === "failed") {
                 closePeer(username);
             }
-            m.redraw();
+            dispatchEvent(new CustomEvent("peerUpdate"));
         }
         rpc.onicecandidate = (e) => {
             if(rpc.iceGatheringState === "complete") {
                 sendMessage("peerInfo", {sdp: rpc.localDescription}, username);
             }
         }
-        (rpc as any).ontrack = (e) => {
-            state.streams[username] = e.streams[0];
-            m.redraw();
+        (rpc as any).ondatachannel = (e) => {
+            let chan = e.channel;
+            chan.onmessage = (e) => console.log(e.data);
+            peerDataChannels[username] = e.channel;
         }
-        state.peers[username] = rpc;
+        (rpc as any).ontrack = (e) => {
+            peerStreams[username] = e.streams[0];
+            dispatchEvent(new CustomEvent("peerUpdate"));
+        }
+        peerConnections[username] = rpc;
     }
-    return state.peers[username]
+    return peerConnections[username]
 }
 function onPeerInfo(event) {
     console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
     if(event.detail.sender !== state.username) {
         var rpc = getPeer(event.detail.sender);
     }
-    if(rpc && event.detail.value.sdp.type === "start") {
+    if(rpc && event.detail.value.sdp.type === "start") { // synthetic sdp
         rpc.createOffer().then(offer=>rpc.setLocalDescription(offer));
     }
     else if(rpc && event.detail.value.sdp.type === "offer") {
@@ -43,21 +58,22 @@ function onPeerInfo(event) {
     else if(rpc && event.detail.value.sdp.type === "answer") {
         rpc.setRemoteDescription(new RTCSessionDescription(event.detail.value.sdp));
     }
-    else if(rpc && event.detail.value.sdp.type === "stop") {
+    else if(rpc && event.detail.value.sdp.type === "stop") { // synthetic sdp
         closePeer(event.detail.sender);
     }
-    m.redraw();
+    dispatchEvent(new CustomEvent("peerUpdate"));
 }
 function closePeer(username) {
-    if(state.streams[username]) {
-        for(var track of state.streams[username].getTracks()) {
-            track.stop();
-        }
-        delete state.streams[username];
+    if(peerStreams[username]) {
+        peerStreams[username].getTracks().map(track=>track.stop());
+        delete peerStreams[username];
     }
-    if(state.peers[username]) {
-        state.peers[username].close();
-        delete state.peers[username];
+    if(peerConnections[username]) {
+        peerConnections[username].close();
+        delete peerConnections[username];
+    }
+    if(peerDataChannels[username]) {
+        delete peerDataChannels[username];
     }
 }
 async function streamingStart() {
@@ -65,45 +81,18 @@ async function streamingStart() {
         alert("Your browser does not support WebRTC!");
         return
     }
-    if(!state.streams[state.username]) {
-        var stream = await navigator.mediaDevices.getUserMedia(config.media);
+    if(!peerStreams[state.username]) {
+        let stream = await navigator.mediaDevices.getUserMedia(peerConfig.media);
         detectAudio(stream);
-        state.streams[state.username] = stream;
+        peerStreams[state.username] = stream;
     }
-    if(state.streams[state.username]) {
+    if(peerStreams[state.username]) {
         sendMessage("peerInfo", {sdp: {type: "start"}});
     }
-    m.redraw();
 }
 async function streamingStop() {
     state.users.forEach(closePeer);
     closePeer(state.username);
     sendMessage("peerInfo", {sdp: {type: "stop"}});
-    m.redraw();
 }
-function onPeerVolume(e:CustomEvent) {
-    let div = document.querySelector(`.streamContainer .info.${e.detail.sender}`);
-    let isSpeaking = e.detail.value;
-    if(div) {
-        isSpeaking ? div.classList.add("loud") : div.classList.remove("loud");
-    }
-}
-var viewStream = (username) => {
-    var localConfig = {
-        srcObject: state.streams[username],
-        autoplay: true,
-        muted: username === state.username,
-    }
-    return m("div.streamContainer",
-        m("video", localConfig),
-        m(`div.info.${username}`, username),
-    )
-}
-let Streams = {
-    view: ()=>
-        m("div#streamGrid", Object.keys(state.streams).sort().map(viewStream))
-}
-addEventListener("peerVolume", onPeerVolume);
 addEventListener("peerInfo", onPeerInfo);
-addEventListener("disconnect", (e:CustomEvent)=>{closePeer(e.detail.value)});
-addEventListener("logout", streamingStop);

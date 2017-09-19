@@ -13,8 +13,6 @@ let defaults = {
     messages: [UserStrings.introMessage],
     uploads: [],
     status: "",
-    peers: <{[username: string]: RTCPeerConnection}>{},
-    streams: <{[username: string]: MediaStream}>{},
 }
 let state = defaults;
 for(let key of Object.keys(defaults)) {
