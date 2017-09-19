@@ -1,3 +1,4 @@
+// WebSockets
 let ws = null;
 let wsUser = null;
 function sendMessage(kind, value, target=undefined, sender=wsUser) {
@@ -50,3 +51,100 @@ function sync(eventName, objectName) {
         dispatchEvent(new CustomEvent("socketEvent"));
     });
 }
+// WebRTC
+let peerConnections:{[user: string]: RTCPeerConnection} = {};
+let peerStreams:{[user: string]: MediaStream} = {};
+let peerDataChannels:{[user: string]: any} = {};
+function getOrCreatePeerConnection(otherUser) {
+    if(!peerConnections[otherUser] && peerStreams[wsUser]) {
+        let iceServers = [
+            {urls: ['stun:stun.l.google.com:19302']},
+            {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter2'},
+        ];
+        let rpc = new RTCPeerConnection({iceServers: iceServers});
+
+        let myStream = peerStreams[wsUser];
+        if(myStream) { rpc.addStream(myStream) }
+
+        let chan = (rpc as any).createDataChannel("data");
+        chan.onmessage = (e) => console.log(e.data);
+        peerDataChannels[otherUser] = chan;
+
+        rpc.oniceconnectionstatechange = (e) => {
+            if(rpc.iceConnectionState === "failed") {
+                closePeer(otherUser);
+            }
+            dispatchEvent(new CustomEvent("peerUpdate"));
+        }
+        rpc.onicecandidate = (e) => {
+            if(rpc.iceGatheringState === "complete") {
+                sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
+            }
+        }
+        (rpc as any).ondatachannel = (e) => {
+            let chan = e.channel;
+            chan.onmessage = (e) => console.log(e.data);
+            peerDataChannels[otherUser] = e.channel;
+        }
+        (rpc as any).ontrack = (e) => {
+            peerStreams[otherUser] = e.streams[0];
+            dispatchEvent(new CustomEvent("peerUpdate"));
+        }
+        peerConnections[otherUser] = rpc;
+    }
+    return peerConnections[otherUser]
+}
+function onPeerInfo(event) {
+    console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
+    if(event.detail.sender !== wsUser) {
+        var rpc = getOrCreatePeerConnection(event.detail.sender);
+    }
+    if(rpc && event.detail.value.sdp.type === "start") { // synthetic sdp
+        rpc.createOffer().then(offer=>rpc.setLocalDescription(offer));
+    }
+    else if(rpc && event.detail.value.sdp.type === "offer") {
+        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.value.sdp));
+        rpc.createAnswer().then(answer=>rpc.setLocalDescription(answer));
+    }
+    else if(rpc && event.detail.value.sdp.type === "answer") {
+        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.value.sdp));
+    }
+    else if(rpc && event.detail.value.sdp.type === "stop") { // synthetic sdp
+        closePeer(event.detail.sender);
+    }
+    dispatchEvent(new CustomEvent("peerUpdate"));
+}
+function closePeer(user) {
+    if(peerStreams[user]) {
+        peerStreams[user].getTracks().map(track=>track.stop());
+        delete peerStreams[user];
+    }
+    if(peerConnections[user]) {
+        peerConnections[user].close();
+        delete peerConnections[user];
+    }
+    if(peerDataChannels[user]) {
+        delete peerDataChannels[user];
+    }
+}
+async function streamingStart() {
+    if(!navigator.mediaDevices) {
+        alert("Your browser does not support WebRTC!");
+        return
+    }
+    if(!peerStreams[wsUser]) {
+        let config = {audio: true, video: {width: 320, height: 240, facingMode: "user"}};
+        let stream = await navigator.mediaDevices.getUserMedia(config);
+        peerStreams[wsUser] = stream;
+        dispatchEvent(new CustomEvent("newStream"));
+    }
+    if(peerStreams[wsUser]) {
+        sendMessage("peerInfo", {sdp: {type: "start"}});
+    }
+}
+async function streamingStop() {
+    Object.keys(peerConnections).forEach(closePeer);
+    closePeer(wsUser);
+    sendMessage("peerInfo", {sdp: {type: "stop"}});
+}
+addEventListener("peerInfo", onPeerInfo);

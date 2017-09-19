@@ -51,6 +51,7 @@ let Main = {
         ? [m(StatusBar), m(Chat), m(Streams), m(Codenames), m(Chess)]
         : [m(Login)]
 }
+addEventListener("newStream", (e)=>detectAudio(peerStreams[state.username]));
 addEventListener("peerVolume", onPeerVolume);
 addEventListener("peerUpdate", (e)=>{m.redraw()});
 addEventListener("disconnect", (e:CustomEvent)=>{closePeer(e.detail.value)});
