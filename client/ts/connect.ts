@@ -59,7 +59,7 @@ function getOrCreatePeerConnection(otherUser) {
     if(!peerConnections[otherUser] && peerStreams[wsUser]) {
         let iceServers = [
             {urls: ['stun:stun.l.google.com:19302']},
-            {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter2'},
+            {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter3'},
         ];
         let rpc = new RTCPeerConnection({iceServers: iceServers});
 
@@ -94,20 +94,24 @@ function getOrCreatePeerConnection(otherUser) {
     }
     return peerConnections[otherUser]
 }
-function onPeerInfo(event) {
+async function onPeerInfo(event) {
     console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
     if(event.detail.sender !== wsUser) {
         var rpc = getOrCreatePeerConnection(event.detail.sender);
     }
-    if(rpc && event.detail.value.sdp.type === "start") { // synthetic sdp
-        rpc.createOffer().then(offer=>rpc.setLocalDescription(offer));
+    if(rpc && event.detail.value.sdp.type === "request") { // synthetic sdp
+        let offer = await rpc.createOffer();
+        rpc.setLocalDescription(offer);
     }
     else if(rpc && event.detail.value.sdp.type === "offer") {
-        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.value.sdp));
-        rpc.createAnswer().then(answer=>rpc.setLocalDescription(answer));
+        let sdp = new RTCSessionDescription(event.detail.value.sdp);
+        rpc.setRemoteDescription(sdp);
+        let answer = await rpc.createAnswer();
+        rpc.setLocalDescription(answer);
     }
     else if(rpc && event.detail.value.sdp.type === "answer") {
-        rpc.setRemoteDescription(new RTCSessionDescription(event.detail.value.sdp));
+        let sdp = new RTCSessionDescription(event.detail.value.sdp);
+        rpc.setRemoteDescription(sdp);
     }
     else if(rpc && event.detail.value.sdp.type === "stop") { // synthetic sdp
         closePeer(event.detail.sender);
@@ -139,7 +143,7 @@ async function streamingStart() {
         dispatchEvent(new CustomEvent("newStream"));
     }
     if(peerStreams[wsUser]) {
-        sendMessage("peerInfo", {sdp: {type: "start"}});
+        sendMessage("peerInfo", {sdp: {type: "request"}});
     }
 }
 async function streamingStop() {
