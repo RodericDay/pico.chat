@@ -94,7 +94,7 @@ function getOrCreatePeerConnection(otherUser) {
         }
         (rpc as any).ontrack = (e) => {
             peerStreams[otherUser] = e.streams[0];
-            dispatchEvent(new CustomEvent("peerUpdate"));
+            dispatchEvent(new CustomEvent("newStream"));
         }
         peerConnections[otherUser] = rpc;
     }
@@ -138,19 +138,22 @@ function closePeer(user) {
     }
 }
 async function streamingStart(config="default") {
-    if(!navigator.mediaDevices) {
-        alert("Your browser does not support WebRTC!");
-        return
+    await streamingStop();
+    let constraints = streamingConfigs[config];
+    if(constraints===undefined) {
+        alert("You selected an invalid constraint.");
     }
-    if(!peerStreams[wsUser]) {
-        let constraints = streamingConfigs[config];
-        let stream = await navigator.mediaDevices.getUserMedia(constraints);
-        peerStreams[wsUser] = stream;
-        dispatchEvent(new CustomEvent("newStream"));
+    if(config!=="dataOnly") {
+        try {
+            let stream = await navigator.mediaDevices.getUserMedia(constraints);
+            peerStreams[wsUser] = stream;
+            dispatchEvent(new CustomEvent("newStream"));
+        }
+        catch(error) {
+            alert(`Cannot start stream because ${error.message}`);
+        }
     }
-    if(peerStreams[wsUser]) {
-        sendMessage("peerInfo", {sdp: {type: "request"}});
-    }
+    sendMessage("peerInfo", {sdp: {type: "request"}});
 }
 async function streamingStop() {
     Object.keys(peerConnections).forEach(closePeer);
