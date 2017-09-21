@@ -52,6 +52,12 @@ function sync(eventName, objectName) {
     });
 }
 // WebRTC
+const streamingConfigs = {
+    dataOnly: null,
+    audioOnly: {audio: true, video: false},
+    screen: {audio: true, video: {mediaSource: 'screen' || 'window'}}, // mozilla only?
+    default: {audio: true, video: {width: 320, height: 240, facingMode: "user"}},
+}
 let peerConnections:{[user: string]: RTCPeerConnection} = {};
 let peerStreams:{[user: string]: MediaStream} = {};
 let peerDataChannels:{[user: string]: any} = {};
@@ -131,14 +137,14 @@ function closePeer(user) {
         delete peerDataChannels[user];
     }
 }
-async function streamingStart() {
+async function streamingStart(config="default") {
     if(!navigator.mediaDevices) {
         alert("Your browser does not support WebRTC!");
         return
     }
     if(!peerStreams[wsUser]) {
-        let config = {audio: true, video: {width: 320, height: 240, facingMode: "user"}};
-        let stream = await navigator.mediaDevices.getUserMedia(config);
+        let constraints = streamingConfigs[config];
+        let stream = await navigator.mediaDevices.getUserMedia(constraints);
         peerStreams[wsUser] = stream;
         dispatchEvent(new CustomEvent("newStream"));
     }
