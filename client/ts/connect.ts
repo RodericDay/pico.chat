@@ -1,4 +1,8 @@
-// WebSockets
+/*
+*
+* WebSockets
+*
+*/
 let ws = null;
 let wsUser = null;
 function sendMessage(kind, value, target=undefined, sender=wsUser) {
@@ -51,7 +55,11 @@ function sync(eventName, objectName) {
         dispatchEvent(new CustomEvent("socketEvent"));
     });
 }
-// WebRTC
+/*
+*
+* WebRTC
+*
+*/
 const streamingConfigs = {
     dataOnly: null,
     audioOnly: {audio: true, video: false},
@@ -62,20 +70,12 @@ let peerConnections:{[user: string]: RTCPeerConnection} = {};
 let peerStreams:{[user: string]: MediaStream} = {};
 let peerDataChannels:{[user: string]: any} = {};
 function getOrCreatePeerConnection(otherUser) {
-    if(!peerConnections[otherUser] && peerStreams[wsUser]) {
+    if(!peerConnections[otherUser]) {
         let iceServers = [
             {urls: ['stun:stun.l.google.com:19302']},
             {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter3'},
         ];
         let rpc = new RTCPeerConnection({iceServers: iceServers});
-
-        let myStream = peerStreams[wsUser];
-        if(myStream) { rpc.addStream(myStream) }
-
-        let chan = (rpc as any).createDataChannel("data");
-        chan.onmessage = (e) => console.log(e.data);
-        peerDataChannels[otherUser] = chan;
-
         rpc.oniceconnectionstatechange = (e) => {
             if(rpc.iceConnectionState === "failed") {
                 closePeer(otherUser);
@@ -84,13 +84,13 @@ function getOrCreatePeerConnection(otherUser) {
         }
         rpc.onicecandidate = (e) => {
             if(rpc.iceGatheringState === "complete") {
+                console.log(`(${wsUser}) ${rpc.localDescription.type}`);
                 sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
             }
         }
         (rpc as any).ondatachannel = (e) => {
-            let chan = e.channel;
-            chan.onmessage = (e) => console.log(e.data);
             peerDataChannels[otherUser] = e.channel;
+            dispatchEvent(new CustomEvent("newDataChannel"));
         }
         (rpc as any).ontrack = (e) => {
             peerStreams[otherUser] = e.streams[0];
@@ -101,15 +101,18 @@ function getOrCreatePeerConnection(otherUser) {
     return peerConnections[otherUser]
 }
 async function onPeerInfo(event) {
-    console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
-    if(event.detail.sender !== wsUser) {
+    if(peerStreams[wsUser] && event.detail.sender !== wsUser) {
+        // if this user is not streaming, ignore requests
         var rpc = getOrCreatePeerConnection(event.detail.sender);
+        console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
     }
     if(rpc && event.detail.value.sdp.type === "request") { // synthetic sdp
+        rpc.addStream(peerStreams[wsUser]);
         let offer = await rpc.createOffer();
         rpc.setLocalDescription(offer);
     }
     else if(rpc && event.detail.value.sdp.type === "offer") {
+        rpc.addStream(peerStreams[wsUser]);
         let sdp = new RTCSessionDescription(event.detail.value.sdp);
         rpc.setRemoteDescription(sdp);
         let answer = await rpc.createAnswer();
