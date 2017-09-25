@@ -8,7 +8,7 @@ let defaults = {
     username: "",
     loggedIn: false,
     chessOn: false,
-    chatOn: true,
+    chatOn: false,
     users: new Set(),
     messages: [UserStrings.introMessage],
     uploads: [],

@@ -1,15 +1,14 @@
-if(window["AudioContext"]) {
-    var audioCtx = new AudioContext();
-    var gainNode = audioCtx.createGain();
-    var oscillator = audioCtx.createOscillator();
-    gainNode.connect(audioCtx.destination);
-    gainNode.gain.value = 0;
-    oscillator.connect(gainNode);
-    oscillator.type = "sine";
-    oscillator.detune.value = 0;
-    oscillator.frequency.value = 500;
-    oscillator.start(0);
-}
+if(!window["AudioContext"]) { AudioContext = window["webkitAudioContext"]; }
+var audioCtx = new AudioContext();
+var gainNode = audioCtx.createGain();
+var oscillator = audioCtx.createOscillator();
+gainNode.connect(audioCtx.destination);
+gainNode.gain.value = 0;
+oscillator.connect(gainNode);
+oscillator.type = "sine";
+oscillator.detune.value = 0;
+oscillator.frequency.value = 500;
+oscillator.start(0);
 function beep() {
     if(gainNode){
         gainNode.gain.value = 0.5;

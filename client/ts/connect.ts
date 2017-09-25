@@ -64,7 +64,7 @@ const streamingConfigs = {
     dataOnly: null,
     audioOnly: {audio: true, video: false},
     screen: {audio: true, video: {mediaSource: 'screen' || 'window'}}, // mozilla only?
-    default: {audio: true, video: {width: 320, height: 240, facingMode: "user"}},
+    default: {audio: true, video: {width: {ideal: 352}, facingMode: "user"}}, // safari 352x288
 }
 let peerConnections:{[user: string]: RTCPeerConnection} = {};
 let peerStreams:{[user: string]: MediaStream} = {};
@@ -83,28 +83,28 @@ function getOrCreatePeerConnection(otherUser) {
             dispatchEvent(new CustomEvent("peerUpdate"));
         }
         rpc.onicecandidate = (e) => {
-            if(rpc.iceGatheringState === "complete") {
+            if(e.candidate===null) { // rpc.iceGatheringState === "complete"
                 console.log(`(${wsUser}) ${rpc.localDescription.type}`);
                 sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
             }
         }
         (rpc as any).ondatachannel = (e) => {
             peerDataChannels[otherUser] = e.channel;
-            dispatchEvent(new CustomEvent("newDataChannel"));
+            dispatchEvent(new CustomEvent("peerUpdate"));
         }
         (rpc as any).ontrack = (e) => {
             peerStreams[otherUser] = e.streams[0];
-            dispatchEvent(new CustomEvent("newStream"));
+            dispatchEvent(new CustomEvent("peerUpdate"));
         }
         peerConnections[otherUser] = rpc;
     }
     return peerConnections[otherUser]
 }
 async function onPeerInfo(event) {
+    console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
     if(peerStreams[wsUser] && event.detail.sender !== wsUser) {
         // if this user is not streaming, ignore requests
         var rpc = getOrCreatePeerConnection(event.detail.sender);
-        console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
     }
     if(rpc && event.detail.value.sdp.type === "request") { // synthetic sdp
         rpc.addStream(peerStreams[wsUser]);

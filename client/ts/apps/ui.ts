@@ -12,7 +12,7 @@ var viewStream = (username) => {
         muted: username === state.username,
     }
     return m("div.streamContainer",
-        m("video", localConfig),
+        m("video[playsinline]", localConfig),
         m(`div.info.${username}`, username),
     )
 }
