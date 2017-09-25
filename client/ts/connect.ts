@@ -83,9 +83,9 @@ function getOrCreatePeerConnection(otherUser) {
             dispatchEvent(new CustomEvent("peerUpdate"));
         }
         rpc.onicecandidate = (e) => {
-            if(e.candidate===null) { // rpc.iceGatheringState === "complete"
-                console.log(`(${wsUser}) ${rpc.localDescription.type}`);
-                sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
+            if(e.candidate) {
+                let message = {sdp: {type: "candidate"}, candidate: e.candidate};
+                sendMessage("peerInfo", message, otherUser)
             }
         }
         (rpc as any).ondatachannel = (e) => {
@@ -109,18 +109,24 @@ async function onPeerInfo(event) {
     if(rpc && event.detail.value.sdp.type === "request") { // synthetic sdp
         rpc.addStream(peerStreams[wsUser]);
         let offer = await rpc.createOffer();
-        rpc.setLocalDescription(offer);
+        await rpc.setLocalDescription(offer);
+        sendMessage("peerInfo", {sdp: rpc.localDescription}, event.detail.sender);
     }
     else if(rpc && event.detail.value.sdp.type === "offer") {
         rpc.addStream(peerStreams[wsUser]);
         let sdp = new RTCSessionDescription(event.detail.value.sdp);
-        rpc.setRemoteDescription(sdp);
+        await rpc.setRemoteDescription(sdp);
         let answer = await rpc.createAnswer();
-        rpc.setLocalDescription(answer);
+        await rpc.setLocalDescription(answer);
+        sendMessage("peerInfo", {sdp: rpc.localDescription}, event.detail.sender);
     }
     else if(rpc && event.detail.value.sdp.type === "answer") {
         let sdp = new RTCSessionDescription(event.detail.value.sdp);
         rpc.setRemoteDescription(sdp);
+    }
+    else if(rpc && event.detail.value.sdp.type === "candidate") {
+        let candidate = new RTCIceCandidate(event.detail.value.candidate);
+        rpc.addIceCandidate(candidate);
     }
     else if(rpc && event.detail.value.sdp.type === "stop") { // synthetic sdp
         closePeer(event.detail.sender);
