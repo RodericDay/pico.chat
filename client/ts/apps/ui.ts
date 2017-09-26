@@ -40,7 +40,7 @@ let StatusBar = {
     view: ()=>m("footer", [
         m("img", {src: "svg/chess.svg", style: {opacity: state.chessOn?1:0.5}, onclick: ()=>state.chessOn=!state.chessOn, title: "chess"}),
         m("img", {src: "svg/deal.svg", style: {opacity: cards.length?1:0.5}, onclick: deal, title: "codenames"}),
-        m("img", {src: "svg/stream.svg", style: {opacity: isEmpty(peerStreams)?1:0.5}, onclick: ()=>isEmpty(peerStreams)?streamingStop():streamingStart(), title: "stream"}),
+        m("img", {src: "svg/stream.svg", style: {opacity: currentConstraints?1:0.5}, onclick: ()=>currentConstraints?streamingStop():streamingStart(), title: "stream"}),
         m("img", {src: "svg/chat.svg", style: {opacity: state.chatOn?1:0.5}, onclick: ()=>state.chatOn=!state.chatOn, title: "chat"}),
         m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
     ])

@@ -60,21 +60,22 @@ function sync(eventName, objectName) {
 * WebRTC
 *
 */
+const iceServers = [
+    {urls: ['stun:stun.l.google.com:19302']},
+    {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter3'},
+];
 const streamingConfigs = {
-    dataOnly: null,
+    dataOnly: {audio: false, video: false},
     audioOnly: {audio: true, video: false},
     screen: {audio: true, video: {mediaSource: 'screen' || 'window'}}, // mozilla only?
     default: {audio: true, video: {width: {ideal: 352}, facingMode: "user"}}, // safari 352x288
 }
+let currentConstraints = null;
 let peerConnections:{[user: string]: RTCPeerConnection} = {};
 let peerStreams:{[user: string]: MediaStream} = {};
 let peerDataChannels:{[user: string]: any} = {};
 function getOrCreatePeerConnection(otherUser) {
     if(!peerConnections[otherUser]) {
-        let iceServers = [
-            {urls: ['stun:stun.l.google.com:19302']},
-            {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter3'},
-        ];
         let rpc = new RTCPeerConnection({iceServers: iceServers});
         rpc.oniceconnectionstatechange = (e) => {
             if(rpc.iceConnectionState === "failed") {
@@ -90,6 +91,7 @@ function getOrCreatePeerConnection(otherUser) {
         }
         (rpc as any).ondatachannel = (e) => {
             peerDataChannels[otherUser] = e.channel;
+            peerDataChannels[otherUser].onmessage = (e) => console.log(e.data);
             dispatchEvent(new CustomEvent("peerUpdate"));
         }
         (rpc as any).ontrack = (e) => {
@@ -102,18 +104,23 @@ function getOrCreatePeerConnection(otherUser) {
 }
 async function onPeerInfo(event) {
     console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
-    if(peerStreams[wsUser] && event.detail.sender !== wsUser) {
+    if(event.detail.sender !== wsUser) {
         // if this user is not streaming, ignore requests
         var rpc = getOrCreatePeerConnection(event.detail.sender);
     }
     if(rpc && event.detail.value.sdp.type === "request") { // synthetic sdp
-        rpc.addStream(peerStreams[wsUser]);
+        let x = JSON.stringify(currentConstraints);
+        let y = JSON.stringify(event.detail.value.constraints);
+        if(x!==y) return;
+        peerDataChannels[event.detail.sender] = (rpc as any).createDataChannel("data");
+        peerDataChannels[event.detail.sender].onmessage = (e) => console.log(e.data);
+        if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
         let offer = await rpc.createOffer();
         await rpc.setLocalDescription(offer);
         sendMessage("peerInfo", {sdp: rpc.localDescription}, event.detail.sender);
     }
     else if(rpc && event.detail.value.sdp.type === "offer") {
-        rpc.addStream(peerStreams[wsUser]);
+        if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
         let sdp = new RTCSessionDescription(event.detail.value.sdp);
         await rpc.setRemoteDescription(sdp);
         let answer = await rpc.createAnswer();
@@ -148,13 +155,14 @@ function closePeer(user) {
 }
 async function streamingStart(config="default") {
     await streamingStop();
-    let constraints = streamingConfigs[config];
-    if(constraints===undefined) {
+    currentConstraints = streamingConfigs[config];
+    if(!currentConstraints) {
         alert("You selected an invalid constraint.");
+        return
     }
-    if(config!=="dataOnly") {
+    else if(config!=="dataOnly") {
         try {
-            let stream = await navigator.mediaDevices.getUserMedia(constraints);
+            let stream = await navigator.mediaDevices.getUserMedia(currentConstraints);
             peerStreams[wsUser] = stream;
             dispatchEvent(new CustomEvent("newStream"));
         }
@@ -162,11 +170,12 @@ async function streamingStart(config="default") {
             alert(`Cannot start stream because ${error.message}`);
         }
     }
-    sendMessage("peerInfo", {sdp: {type: "request"}});
+    sendMessage("peerInfo", {sdp: {type: "request"}, constraints: currentConstraints});
 }
 async function streamingStop() {
     Object.keys(peerConnections).forEach(closePeer);
     closePeer(wsUser);
+    currentConstraints = null;
     sendMessage("peerInfo", {sdp: {type: "stop"}});
 }
 addEventListener("peerInfo", onPeerInfo);
