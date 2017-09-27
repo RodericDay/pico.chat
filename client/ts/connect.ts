@@ -67,8 +67,9 @@ const iceServers = [
 const streamingConfigs = {
     dataOnly: {audio: false, video: false},
     audioOnly: {audio: true, video: false},
-    screen: {audio: true, video: {mediaSource: 'screen' || 'window'}}, // mozilla only?
-    default: {audio: true, video: {width: {ideal: 352}, facingMode: "user"}}, // safari 352x288
+    screen: {audio: true, video: {mediaSource: 'screen'}},
+    window: {audio: true, video: {mediaSource: 'window'}},
+    default: {audio: true, video: {width: {ideal: 320}, facingMode: "user"}},
 }
 let currentConstraints = null;
 let peerConnections:{[user: string]: RTCPeerConnection} = {};
@@ -104,39 +105,43 @@ function getOrCreatePeerConnection(otherUser) {
 }
 async function onPeerInfo(event) {
     console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
-    if(event.detail.sender !== wsUser) {
-        // if this user is not streaming, ignore requests
-        var rpc = getOrCreatePeerConnection(event.detail.sender);
+    if(event.detail.sender === wsUser) {
+        dispatchEvent(new CustomEvent("peerUpdate"));
+        return
     }
-    if(rpc && event.detail.value.sdp.type === "request") { // synthetic sdp
+
+    let rpc = getOrCreatePeerConnection(event.detail.sender);
+    let otherUser = event.detail.sender;
+    let msgType = event.detail.value.sdp.type; // sometimes synthetic
+    if(msgType === "request") {
         let x = JSON.stringify(currentConstraints);
         let y = JSON.stringify(event.detail.value.constraints);
         if(x!==y) return;
-        peerDataChannels[event.detail.sender] = (rpc as any).createDataChannel("data");
-        peerDataChannels[event.detail.sender].onmessage = (e) => console.log(e.data);
+        peerDataChannels[otherUser] = (rpc as any).createDataChannel("data");
+        peerDataChannels[otherUser].onmessage = (e) => console.log(e.data);
         if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
         let offer = await rpc.createOffer();
         await rpc.setLocalDescription(offer);
-        sendMessage("peerInfo", {sdp: rpc.localDescription}, event.detail.sender);
+        sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
     }
-    else if(rpc && event.detail.value.sdp.type === "offer") {
+    else if(msgType === "offer") {
         if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
         let sdp = new RTCSessionDescription(event.detail.value.sdp);
         await rpc.setRemoteDescription(sdp);
         let answer = await rpc.createAnswer();
         await rpc.setLocalDescription(answer);
-        sendMessage("peerInfo", {sdp: rpc.localDescription}, event.detail.sender);
+        sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
     }
-    else if(rpc && event.detail.value.sdp.type === "answer") {
+    else if(msgType === "answer") {
         let sdp = new RTCSessionDescription(event.detail.value.sdp);
         rpc.setRemoteDescription(sdp);
     }
-    else if(rpc && event.detail.value.sdp.type === "candidate") {
+    else if(msgType === "candidate") {
         let candidate = new RTCIceCandidate(event.detail.value.candidate);
         rpc.addIceCandidate(candidate);
     }
-    else if(rpc && event.detail.value.sdp.type === "stop") { // synthetic sdp
-        closePeer(event.detail.sender);
+    else if(msgType === "stop") {
+        closePeer(otherUser);
     }
     dispatchEvent(new CustomEvent("peerUpdate"));
 }
@@ -158,16 +163,27 @@ async function streamingStart(config="default") {
     currentConstraints = streamingConfigs[config];
     if(!currentConstraints) {
         alert("You selected an invalid constraint.");
-        return
+        return streamingStop();
     }
     else if(config!=="dataOnly") {
         try {
-            let stream = await navigator.mediaDevices.getUserMedia(currentConstraints);
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(currentConstraints);
+            }
+            catch(error) {
+                console.info("temporarily changing resolutions for iPhone");
+                currentConstraints.video.width.ideal = 352; // x 288
+                stream = await navigator.mediaDevices.getUserMedia(currentConstraints);
+                currentConstraints.video.width.ideal = 320;
+                console.info("reset temporary change");
+            }
             peerStreams[wsUser] = stream;
             dispatchEvent(new CustomEvent("newStream"));
         }
         catch(error) {
             alert(`Cannot start stream because ${error.message}`);
+            return streamingStop();
         }
     }
     sendMessage("peerInfo", {sdp: {type: "request"}, constraints: currentConstraints});
