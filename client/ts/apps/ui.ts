@@ -6,13 +6,9 @@ function onPeerVolume(e:CustomEvent) {
     }
 }
 var viewStream = (username) => {
-    var localConfig = {
-        srcObject: peerStreams[username],
-        autoplay: true,
-        muted: username === state.username,
-    }
-    return m("div.streamContainer",
-        m("video[playsinline]", localConfig),
+    let stream = peerStreams[username];
+    return m("div.streamContainer", {key: username},
+        m("video[muted][controls][autoplay][playsinline]", {srcObject: stream}),
         m(`div.info.${username}`, username),
     )
 }
@@ -60,7 +56,7 @@ addEventListener("socketEvent", (e:CustomEvent) => {
     m.redraw();
 });
 addEventListener("socketError", (e:CustomEvent) => {
-    alert(e.detail.value);
+    if(e.detail.value) { alert(e.detail.value); }
     m.redraw();
 });
 addEventListener("login", (e:CustomEvent) => {
