@@ -64,18 +64,20 @@ footer * {
     border-radius: 0;
 }
 #streamGrid {
+    box-shadow: none;
     position: fixed;
     left: 0;
     top: 0;
     font-size: 0;
 }
 .streamContainer {
-    max-width: 50vw;
     position: relative;
     display: inline-block;
 }
 .streamContainer video {
-    width: 100%;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
     transform: scaleX(-1);
 }
 .streamContainer .info {
