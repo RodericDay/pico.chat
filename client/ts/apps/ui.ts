@@ -5,16 +5,22 @@ function onPeerVolume(e:CustomEvent) {
         isSpeaking ? div.classList.add("loud") : div.classList.remove("loud");
     }
 }
+function onStream(user) {
+    console.log(user);
+    let root = document.querySelector("#streamGrid");
+    m.render(root, Object.keys(peerStreams).sort().map(viewStream));
+    // detectAudio(peerStreams[state.username])
+}
 var viewStream = (username) => {
-    let stream = peerStreams[username];
-    return m("div.streamContainer", {key: username},
-        m("video[muted][controls][autoplay][playsinline]", {srcObject: stream}),
+    let attributes = {srcObject: peerStreams[username]}
+    return m("div.streamContainer",
+        m("video[muted][controls][autoplay][playsinline]", attributes),
         m(`div.info.${username}`, username),
     )
 }
 let Streams = {
-    view: ()=>
-        m("div#streamGrid", Object.keys(peerStreams).sort().map(viewStream))
+    // draw this manually for performance reasons
+    view: ()=>  m("div#streamGrid", {subtree: "retain"})
 }
 let Login = {
     view: function() {
@@ -34,8 +40,6 @@ let Login = {
 }
 let StatusBar = {
     view: ()=>m("footer", [
-        m("img", {src: "svg/chess.svg", style: {opacity: state.chessOn?1:0.5}, onclick: ()=>state.chessOn=!state.chessOn, title: "chess"}),
-        m("img", {src: "svg/deal.svg", style: {opacity: cards.length?1:0.5}, onclick: deal, title: "codenames"}),
         m("img", {src: "svg/stream.svg", style: {opacity: currentConstraints?1:0.5}, onclick: ()=>currentConstraints?streamingStop():streamingStart(), title: "stream"}),
         m("img", {src: "svg/chat.svg", style: {opacity: state.chatOn?1:0.5}, onclick: ()=>state.chatOn=!state.chatOn, title: "chat"}),
         m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
@@ -44,10 +48,10 @@ let StatusBar = {
 let Main = {
     view: ()=>
         state.loggedIn
-        ? [m(StatusBar), m(Chat), m(Streams), m(Codenames), m(Chess)]
+        ? [m(StatusBar), m(Chat), m(Streams)]
         : [m(Login)]
 }
-addEventListener("newStream", (e)=>detectAudio(peerStreams[state.username]));
+listen("onStream", onStream);
 addEventListener("peerVolume", onPeerVolume);
 addEventListener("peerUpdate", (e)=>{m.redraw()});
 addEventListener("disconnect", (e:CustomEvent)=>{closePeer(e.detail.value)});

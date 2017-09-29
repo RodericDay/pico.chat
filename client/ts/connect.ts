@@ -190,3 +190,5 @@ async function streamingStop() {
 *
 */
 listen("peerInfo", onPeerInfo);
+listen("disconnect", (message)=>{closePeer(message.sender)});
+listen("logout", streamingStop);
