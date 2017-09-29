@@ -1,3 +1,10 @@
+function changeChannel() {
+    let current = state.channel || "lobby";
+    let ans = prompt(`You are in the channel "${current}". Where do you want to go?`);
+    if(ans===null) return
+    location.hash = ans;
+    location.reload();
+}
 function onPeerVolume(e:CustomEvent) {
     let user = e.detail.sender;
     let isLoud = e.detail.value > 1000;
@@ -25,8 +32,8 @@ let Streams = {
 }
 let Login = {
     view: function() {
-        return m("footer", [
-            m("form[name=login]", {onsubmit: login}, [
+        return m("#splash", [
+            m("form[name=login].bar", {onsubmit: login}, [
                 m("input[name=username]", {
                     oninput: (e)=>{state.username=e.target.value},
                     value: state.username,
@@ -34,13 +41,30 @@ let Login = {
                     placeholder: "pick any username!",
                 }),
                 m("button", {style: "display:none;"}),
+                m("img", {src: "svg/login.svg", onclick: login, title: "log in"}),
             ]),
-            m("img", {src: "svg/login.svg", onclick: login, title: "log in"}),
         ])
     }
 }
-let StatusBar = {
-    view: ()=>m("footer", [
+let Chat = {
+    view: () => !state.chatOn?[]:m("div#chat", [
+        m("div#chat-log", state.messages.map(renderPost)),
+        m("form#chat-form", {onsubmit: post},
+          m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
+          m("input[name=text]", {autocomplete: "off"}),
+          m("img", {onclick: post, src: "svg/post.svg", title: "post message"}),
+          m("img", {src: "svg/upload.svg", onclick: upload, title: "upload file"}),
+        ),
+        m(Upload),
+        m("details#chat-userlist",
+            m("summary#chat-usercount", `${state.channel||"lobby"} (${state.users.size} online)`),
+            m("div", sorted(state.users).join(', ')),
+        ),
+    ])
+}
+let Nav = {
+    view: ()=>m("nav.bar", [
+        m("img", {src: "svg/channel.svg", onclick: changeChannel, title: "channel"}),
         m("img", {src: "svg/stream.svg", style: {opacity: currentConstraints?1:0.5}, onclick: ()=>currentConstraints?streamingStop():streamingStart(), title: "stream"}),
         m("img", {src: "svg/chat.svg", style: {opacity: state.chatOn?1:0.5}, onclick: ()=>state.chatOn=!state.chatOn, title: "chat"}),
         m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
@@ -49,7 +73,7 @@ let StatusBar = {
 let Main = {
     view: ()=>
         state.loggedIn
-        ? [m(StatusBar), m(Chat), m(Streams)]
+        ? [m(Nav), m(Chat), m(Streams)]
         : [m(Login)]
 }
 listen("onStream", onStream);

@@ -46,23 +46,6 @@ function scrollToNewest() {
     }
     window.setTimeout(_, 100);
 }
-/* views */
-var Chat = {
-    view: () => !state.chatOn?[]:m("div#chat", [
-        m("div#chat-log", state.messages.map(renderPost)),
-        m("form#chat-form", {onsubmit: post},
-          m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
-          m("input[name=text]", {autocomplete: "off"}),
-          m("img", {onclick: post, src: "svg/post.svg", title: "post message"}),
-          m("img", {src: "svg/upload.svg", onclick: upload, title: "upload file"}),
-        ),
-        m(Upload),
-        m("details#chat-userlist",
-            m("summary#chat-usercount", `${state.channel||"lobby"} (${state.users.size} online)`),
-            m("div", sorted(state.users).join(', ')),
-        ),
-    ])
-}
 /* listeners */
 addEventListener("login", (e:CustomEvent)=>{
     let strings = e.detail.value ? e.detail.value.split(';') : [];

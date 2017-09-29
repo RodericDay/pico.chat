@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -5 10 10">
+  <rect width="10" height="10" x="-5" y="-5" fill="green" />
+  <rect width="7" height="1" fill="white" transform="skewX(-10)" x="-3.5" y="1"  />
+  <rect width="7" height="1" fill="white" transform="skewX(-10)" x="-3.5" y="-2" />
+  <rect width="1" height="7" fill="white" transform="skewX(-10)" x="1" y="-3.5"  />
+  <rect width="1" height="7" fill="white" transform="skewX(-10)" x="-2" y="-3.5" />
+</svg>

@@ -51,9 +51,6 @@ function humanize(sizeInBytes) {
 function isEmpty(object) {
     return Object.keys(object).length > 0
 }
-function refresh() {
-    location.replace(location.href);
-}
 function sorted(set) {
     /* Combination of TypeScript, Sets, and ES5 needs a workaround */
     var sortable = [];
