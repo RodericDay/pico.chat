@@ -26,12 +26,12 @@ function post(e) {
         alert(`${target} not in channel.`)
     }
     else if(target) {//private
-        sendMessage("post", text.value, target);
-        sendMessage("post", text.value, state.username); // self
+        wire("post", text.value, target);
+        wire("post", text.value, state.username); // self
         text.value = `@${target} `;
     }
     else if(text.value) {//public
-        sendMessage("post", text.value);
+        wire("post", text.value);
         text.value = "";
     }
 }

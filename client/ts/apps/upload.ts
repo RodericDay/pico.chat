@@ -3,9 +3,9 @@ function uploadFile(event) {
         let reader = new FileReader();
         let size = humanize(file.size);
         if(file.size>1E6 && !confirm(UserStrings.largeFile)){return}
-        sendMessage("post", `uploading ${file.name} (${size})...`);
+        wire("post", `uploading ${file.name} (${size})...`);
         reader.onload = (e) => {
-            sendMessage("fileTransfer", {data: reader.result, name: file.name, size: size});
+            wire("fileTransfer", {data: reader.result, name: file.name, size: size});
         };
         reader.readAsBinaryString(file);
     }

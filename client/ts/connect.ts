@@ -7,7 +7,7 @@ let listen = (type, func) => addEventListener(type, (e)=>func(e.detail));
 */
 let ws = null;
 let wsUser = null;
-function sendMessage(kind, value, target=undefined, sender=wsUser) {
+function wire(kind, value, target=undefined, sender=wsUser) {
     // backend will complain if sender doesn't match sign-on name
     if(value.constructor.name !== "String") {
         value = JSON.stringify(value);
@@ -20,7 +20,7 @@ function openConnection(username, channel) {
     ws = new WebSocket(wsUrl);
     wsUser = username;
     ws.onopen = (e) => {
-        sendMessage("login", channel);
+        wire("login", channel);
     }
     ws.onclose = (e) => {
         signal("logout", wsUser);
@@ -77,7 +77,7 @@ function getOrCreatePeerConnection(otherUser) {
         rpc.onicecandidate = (e) => {
             if(e.candidate) {
                 let message = {sdp: {type: "candidate"}, candidate: e.candidate};
-                sendMessage("peerInfo", message, otherUser)
+                wire("peerInfo", message, otherUser)
             }
         }
         (rpc as any).ondatachannel = (e) => {
@@ -111,7 +111,7 @@ async function onPeerInfo(info) {
         if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
         let offer = await rpc.createOffer();
         await rpc.setLocalDescription(offer);
-        sendMessage("peerInfo", {sdp: rpc.localDescription}, info.sender);
+        wire("peerInfo", {sdp: rpc.localDescription}, info.sender);
     }
     else if(msgType === "offer") {
         if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
@@ -119,7 +119,7 @@ async function onPeerInfo(info) {
         await rpc.setRemoteDescription(sdp);
         let answer = await rpc.createAnswer();
         await rpc.setLocalDescription(answer);
-        sendMessage("peerInfo", {sdp: rpc.localDescription}, info.sender);
+        wire("peerInfo", {sdp: rpc.localDescription}, info.sender);
     }
     else if(msgType === "answer") {
         let sdp = new RTCSessionDescription(info.value.sdp);
@@ -176,13 +176,13 @@ async function streamingStart(config="default") {
             return streamingStop();
         }
     }
-    sendMessage("peerInfo", {sdp: {type: "request"}, constraints: currentConstraints});
+    wire("peerInfo", {sdp: {type: "request"}, constraints: currentConstraints});
 }
 async function streamingStop() {
     Object.keys(peerConnections).forEach(closePeer);
     closePeer(wsUser);
     currentConstraints = null;
-    sendMessage("peerInfo", {sdp: {type: "stop"}});
+    wire("peerInfo", {sdp: {type: "stop"}});
 }
 /*
 *
