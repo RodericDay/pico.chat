@@ -38,7 +38,7 @@ function detectAudio(stream) {
             let isSpeakingCheck = volume > 1000;
             if(isSpeaking !== isSpeakingCheck) {
                 isSpeaking = isSpeakingCheck;
-                sendMessage("peerVolume", isSpeaking);
+                sendMessage("peerVolume", volume);
             }
             timeout = setTimeout(()=>{timeout=null}, 500);
         }

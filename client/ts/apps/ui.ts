@@ -1,21 +1,22 @@
 function onPeerVolume(e:CustomEvent) {
-    let div = document.querySelector(`.streamContainer .info.${e.detail.sender}`);
-    let isSpeaking = e.detail.value;
-    if(div) {
-        isSpeaking ? div.classList.add("loud") : div.classList.remove("loud");
-    }
+    let user = e.detail.sender;
+    let isLoud = e.detail.value > 1000;
+    let div = document.querySelector(`.streamContainer.${user} .info`);
+    if(div) isLoud ? div.classList.add("loud") : div.classList.remove("loud");
 }
 function onStream(user) {
-    console.log(user);
     let root = document.querySelector("#streamGrid");
     m.render(root, Object.keys(peerStreams).sort().map(viewStream));
-    // detectAudio(peerStreams[state.username])
+    if(user===state.username&&peerStreams[user]) detectAudio(peerStreams[user]);
 }
-var viewStream = (username) => {
-    let attributes = {srcObject: peerStreams[username]}
-    return m("div.streamContainer",
-        m("video[muted][controls][autoplay][playsinline]", attributes),
-        m(`div.info.${username}`, username),
+var viewStream = (user) => {
+    let attributes = {
+        muted: user === state.username,
+        srcObject: peerStreams[user],
+    }
+    return m(`div.streamContainer.${user}`,
+        m("video[controls][autoplay][playsinline]", attributes),
+        m("div.info", user),
     )
 }
 let Streams = {
@@ -54,8 +55,6 @@ let Main = {
 listen("onStream", onStream);
 addEventListener("peerVolume", onPeerVolume);
 addEventListener("peerUpdate", (e)=>{m.redraw()});
-addEventListener("disconnect", (e:CustomEvent)=>{closePeer(e.detail.value)});
-addEventListener("logout", streamingStop);
 addEventListener("socketEvent", (e:CustomEvent) => {
     m.redraw();
 });
