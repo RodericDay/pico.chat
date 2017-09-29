@@ -1,3 +1,5 @@
+let signal = (type, value?) => dispatchEvent(new CustomEvent(type, {detail: value}));
+let listen = (type, func) => addEventListener(type, (e)=>func(e.detail));
 /*
 *
 * WebSockets
@@ -21,7 +23,7 @@ function openConnection(username, channel) {
         sendMessage("login", channel);
     }
     ws.onclose = (e) => {
-        dispatchEvent(new CustomEvent("logout", {detail: wsUser}));
+        signal("logout", wsUser);
         wsUser = null;
     }
     ws.onmessage = (e) => {
@@ -37,23 +39,11 @@ function openConnection(username, channel) {
         catch(SyntaxError) {
             var message:any = {kind: "socketError", value: e.data}
         }
-        dispatchEvent(new CustomEvent(message.kind, {detail: message}));
+        signal(message.kind, message);
     }
     ws.onerror = (error) => {
-        dispatchEvent(new CustomEvent("socketError", {detail: error}));
+        signal("socketError", error);
     }
-}
-function sync(eventName, objectName) {
-    // helper for emission and modification of serialized objects
-    addEventListener("connect", (e:CustomEvent)=>{
-        if(e.detail.value!==wsUser){
-            sendMessage(eventName, window[objectName], e.detail.value);
-        }
-    });
-    addEventListener(eventName, (e:CustomEvent)=>{
-        window[objectName] = e.detail.value;
-        dispatchEvent(new CustomEvent("socketEvent"));
-    });
 }
 /*
 *
@@ -82,7 +72,7 @@ function getOrCreatePeerConnection(otherUser) {
             if(rpc.iceConnectionState === "failed") {
                 closePeer(otherUser);
             }
-            dispatchEvent(new CustomEvent("peerUpdate"));
+            signal("peerUpdate");
         }
         rpc.onicecandidate = (e) => {
             if(e.candidate) {
@@ -93,62 +83,62 @@ function getOrCreatePeerConnection(otherUser) {
         (rpc as any).ondatachannel = (e) => {
             peerDataChannels[otherUser] = e.channel;
             peerDataChannels[otherUser].onmessage = (e) => console.log(e.data);
-            dispatchEvent(new CustomEvent("peerUpdate"));
+            signal("peerUpdate");
         }
         (rpc as any).ontrack = (e) => {
             peerStreams[otherUser] = e.streams[0];
-            dispatchEvent(new CustomEvent("peerUpdate"));
+            signal("onStream", otherUser);
         }
         peerConnections[otherUser] = rpc;
     }
     return peerConnections[otherUser]
 }
-async function onPeerInfo(event) {
-    console.log(`(${event.detail.sender}) ${event.detail.value.sdp.type}`);
-    if(event.detail.sender === wsUser) {
-        dispatchEvent(new CustomEvent("peerUpdate"));
+async function onPeerInfo(info) {
+    console.log(`(${info.sender}) ${info.value.sdp.type}`);
+    if(info.sender === wsUser) {
+        signal("peerUpdate");
         return
     }
 
-    let rpc = getOrCreatePeerConnection(event.detail.sender);
-    let otherUser = event.detail.sender;
-    let msgType = event.detail.value.sdp.type; // sometimes synthetic
+    let rpc = getOrCreatePeerConnection(info.sender);
+    let msgType = info.value.sdp.type; // sometimes synthetic
     if(msgType === "request") {
         let x = JSON.stringify(currentConstraints);
-        let y = JSON.stringify(event.detail.value.constraints);
+        let y = JSON.stringify(info.value.constraints);
         if(x!==y) return;
-        peerDataChannels[otherUser] = (rpc as any).createDataChannel("data");
-        peerDataChannels[otherUser].onmessage = (e) => console.log(e.data);
+        peerDataChannels[info.sender] = (rpc as any).createDataChannel("data");
+        peerDataChannels[info.sender].onmessage = (e) => console.log(e.data);
         if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
         let offer = await rpc.createOffer();
         await rpc.setLocalDescription(offer);
-        sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
+        sendMessage("peerInfo", {sdp: rpc.localDescription}, info.sender);
     }
     else if(msgType === "offer") {
         if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
-        let sdp = new RTCSessionDescription(event.detail.value.sdp);
+        let sdp = new RTCSessionDescription(info.value.sdp);
         await rpc.setRemoteDescription(sdp);
         let answer = await rpc.createAnswer();
         await rpc.setLocalDescription(answer);
-        sendMessage("peerInfo", {sdp: rpc.localDescription}, otherUser);
+        sendMessage("peerInfo", {sdp: rpc.localDescription}, info.sender);
     }
     else if(msgType === "answer") {
-        let sdp = new RTCSessionDescription(event.detail.value.sdp);
+        let sdp = new RTCSessionDescription(info.value.sdp);
         rpc.setRemoteDescription(sdp);
     }
     else if(msgType === "candidate") {
-        let candidate = new RTCIceCandidate(event.detail.value.candidate);
+        let candidate = new RTCIceCandidate(info.value.candidate);
         rpc.addIceCandidate(candidate);
     }
     else if(msgType === "stop") {
-        closePeer(otherUser);
+        closePeer(info.sender);
     }
-    dispatchEvent(new CustomEvent("peerUpdate"));
+    signal("peerUpdate");
 }
 function closePeer(user) {
     if(peerStreams[user]) {
         peerStreams[user].getTracks().map(track=>track.stop());
         delete peerStreams[user];
+        signal("onStream", user);
     }
     if(peerConnections[user]) {
         peerConnections[user].close();
@@ -179,7 +169,7 @@ async function streamingStart(config="default") {
                 console.info("reset temporary change");
             }
             peerStreams[wsUser] = stream;
-            dispatchEvent(new CustomEvent("newStream"));
+            signal("onStream", wsUser);
         }
         catch(error) {
             alert(`Cannot start stream because ${error.message}`);
@@ -194,4 +184,9 @@ async function streamingStop() {
     currentConstraints = null;
     sendMessage("peerInfo", {sdp: {type: "stop"}});
 }
-addEventListener("peerInfo", onPeerInfo);
+/*
+*
+* Initialize
+*
+*/
+listen("peerInfo", onPeerInfo);
