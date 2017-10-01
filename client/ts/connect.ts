@@ -24,7 +24,6 @@ function openConnection(username, channel) {
     }
     ws.onclose = (e) => {
         signal("logout", wsUser);
-        wsUser = null;
     }
     ws.onmessage = (e) => {
         try {
@@ -82,8 +81,7 @@ function getOrCreatePeerConnection(otherUser) {
         }
         (rpc as any).ondatachannel = (e) => {
             peerDataChannels[otherUser] = e.channel;
-            peerDataChannels[otherUser].onmessage = (e) => console.log(e.data);
-            signal("peerUpdate");
+            signal("peerDataChannel", peerDataChannels[otherUser]);
         }
         (rpc as any).ontrack = (e) => {
             peerStreams[otherUser] = e.streams[0];
@@ -107,7 +105,7 @@ async function onPeerInfo(info) {
         let y = JSON.stringify(info.value.constraints);
         if(x!==y) return;
         peerDataChannels[info.sender] = (rpc as any).createDataChannel("data");
-        peerDataChannels[info.sender].onmessage = (e) => console.log(e.data);
+        signal("peerDataChannel", peerDataChannels[info.sender]);
         if(peerStreams[wsUser]) rpc.addStream(peerStreams[wsUser]);
         let offer = await rpc.createOffer();
         await rpc.setLocalDescription(offer);
