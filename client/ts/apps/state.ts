@@ -7,12 +7,12 @@ let defaults = {
     channel: location.hash,
     username: "",
     loggedIn: false,
-    chessOn: false,
-    chatOn: false,
     users: new Set(),
     messages: [UserStrings.introMessage],
     uploads: [],
     status: "",
+    chatOn: false,
+    settingsOn: false,
 }
 let state = defaults;
 for(let key of Object.keys(defaults)) {

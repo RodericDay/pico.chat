@@ -12,6 +12,28 @@
         radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 8px 9px;
     background-color:#282828;
     background-size:16px 16px;
+    /* other */
+    font-family: sans-serif;
+}
+nav {
+    position: fixed;
+    bottom: 0;
+}
+#settings {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+}
+#settings > * {
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px;
 }
 .bar * {
     font-size: 100%;

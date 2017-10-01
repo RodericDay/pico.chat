@@ -62,18 +62,24 @@ let Chat = {
         ),
     ])
 }
+let Settings = {
+    view: ()=> !state.settingsOn?[]:m("div#settings", [
+        m("div", "hi")
+    ])
+}
 let Nav = {
     view: ()=>m("nav.bar", [
         m("img", {src: "svg/channel.svg", onclick: changeChannel, title: "channel"}),
         m("img", {src: "svg/stream.svg", style: {opacity: currentConstraints?1:0.5}, onclick: ()=>currentConstraints?streamingStop():streamingStart(), title: "stream"}),
         m("img", {src: "svg/chat.svg", style: {opacity: state.chatOn?1:0.5}, onclick: ()=>state.chatOn=!state.chatOn, title: "chat"}),
+        m("img", {src: "svg/settings.svg", style: {opacity: state.settingsOn?1:0.5}, onclick: ()=>state.settingsOn=!state.settingsOn, title: "settings"}),
         m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
     ])
 }
 let Main = {
     view: ()=>
         state.loggedIn
-        ? [m(Nav), m(Chat), m(Streams)]
+        ? [m(Chat), m(Streams), m(Settings), m(Nav)]
         : [m(Login)]
 }
 listen("onStream", onStream);
