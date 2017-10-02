@@ -175,10 +175,14 @@ let defaults = {
     iceServers: [{urls: ['stun:stun.l.google.com:19302']},],
     audio: true,
     video: {width: {ideal: 320}, facingMode: "user"},
+    videoFilter: "none",
+    videoTransform: "none",
 }
 const opts = {
     audio: [false],
-    video: [false, {mediaSource: 'screen'}, {mediaSource: 'window'}],
+    video: [true, false, {mediaSource: 'screen'}, {mediaSource: 'window'}],
+    videoFilter: ["invert(1)", "grayscale(1)", "sepia(1)", "blur(3px)"],
+    videoTransform: ["scaleX(-1)"],
 }
 const stevedore = {
     set: (obj, prop, value) => {

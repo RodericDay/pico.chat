@@ -12,7 +12,7 @@ let state = {
     get loggedIn() { return ws && ws.readyState === 1 },
     get streamingOn() { return Object.keys(peerStreams).length > 0 },
 }
-defaults["chatOn"] = false;
+defaults["chatOn"] = true;
 defaults["settingsOn"] = false;
 function changeChannel() {
     let current = state.channel || "lobby";
@@ -34,6 +34,10 @@ function onStream(user) {
 }
 var viewStream = (user) => {
     let attributes = {
+        style: {
+            filter: settings.videoFilter,
+            transform: settings.videoTransform,
+        },
         muted: user === settings.username,
         srcObject: peerStreams[user],
     }
