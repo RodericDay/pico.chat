@@ -15,9 +15,7 @@ function wire(kind, value, target=undefined, sender=wsUser) {
     ws.send(JSON.stringify({kind: kind, value: value, sender: sender, target: target}));
 }
 function openConnection(username, channel) {
-    let isLocal = location.href.match("http://localhost:8000/");
-    let wsUrl = isLocal ? "ws://localhost:9160/" : "wss://permanentsignal.com/ws/";
-    ws = new WebSocket(wsUrl);
+    ws = new WebSocket(settings.wsUrl);
     wsUser = username;
     ws.onopen = (e) => {
         wire("login", channel);
@@ -49,24 +47,12 @@ function openConnection(username, channel) {
 * WebRTC
 *
 */
-const iceServers = [
-    {urls: ['stun:stun.l.google.com:19302']},
-    {urls: ['turn:159.203.33.68:3478'], username: 'bionic', credential: 'hunter3'},
-];
-const streamingConfigs = {
-    dataOnly: {audio: false, video: false},
-    audioOnly: {audio: true, video: false},
-    screen: {audio: true, video: {mediaSource: 'screen'}},
-    window: {audio: true, video: {mediaSource: 'window'}},
-    default: {audio: true, video: {width: {ideal: 320}, facingMode: "user"}},
-}
-let currentConstraints = null;
 let peerConnections:{[user: string]: RTCPeerConnection} = {};
 let peerStreams:{[user: string]: MediaStream} = {};
 let peerDataChannels:{[user: string]: any} = {};
 function getOrCreatePeerConnection(otherUser) {
     if(!peerConnections[otherUser]) {
-        let rpc = new RTCPeerConnection({iceServers: iceServers});
+        let rpc = new RTCPeerConnection({iceServers: settings.iceServers});
         rpc.oniceconnectionstatechange = (e) => {
             if(rpc.iceConnectionState === "failed") {
                 closePeer(otherUser);
@@ -101,7 +87,7 @@ async function onPeerInfo(info) {
     let rpc = getOrCreatePeerConnection(info.sender);
     let msgType = info.value.sdp.type; // sometimes synthetic
     if(msgType === "request") {
-        let x = JSON.stringify(currentConstraints);
+        let x = JSON.stringify(settings.constraints);
         let y = JSON.stringify(info.value.constraints);
         if(x!==y) return;
         peerDataChannels[info.sender] = (rpc as any).createDataChannel("data");
@@ -146,25 +132,23 @@ function closePeer(user) {
         delete peerDataChannels[user];
     }
 }
-async function streamingStart(config="default") {
+async function streamingStart() {
     await streamingStop();
-    currentConstraints = streamingConfigs[config];
-    if(!currentConstraints) {
+    let constraints = {audio: settings.audio, video: settings.video};
+    if(!constraints) {
         alert("You selected an invalid constraint.");
         return streamingStop();
     }
-    else if(config!=="dataOnly") {
+    else if(constraints.audio || constraints.video) {
         try {
             let stream;
             try {
-                stream = await navigator.mediaDevices.getUserMedia(currentConstraints);
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
             }
             catch(error) {
-                console.info("temporarily changing resolutions for iPhone");
-                currentConstraints.video.width.ideal = 352; // x 288
-                stream = await navigator.mediaDevices.getUserMedia(currentConstraints);
-                currentConstraints.video.width.ideal = 320;
-                console.info("reset temporary change");
+                console.log("Adjusting settings for iPhone");
+                constraints.video.width.ideal = 352; // x 288
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
             }
             peerStreams[wsUser] = stream;
             signal("onStream", wsUser);
@@ -174,14 +158,43 @@ async function streamingStart(config="default") {
             return streamingStop();
         }
     }
-    wire("peerInfo", {sdp: {type: "request"}, constraints: currentConstraints});
+    wire("peerInfo", {sdp: {type: "request"}, constraints: settings.constraints});
 }
 async function streamingStop() {
     Object.keys(peerConnections).forEach(closePeer);
     closePeer(wsUser);
-    currentConstraints = null;
     wire("peerInfo", {sdp: {type: "stop"}});
 }
+/*
+*
+* Settings / Config
+*
+*/
+let defaults = {
+    wsUrl: "wss://permanentsignal.com/ws/",
+    iceServers: [{urls: ['stun:stun.l.google.com:19302']},],
+    audio: true,
+    video: {width: {ideal: 320}, facingMode: "user"},
+}
+const opts = {
+    audio: [false],
+    video: [false, {mediaSource: 'screen'}, {mediaSource: 'window'}],
+}
+const stevedore = {
+    set: (obj, prop, value) => {
+        obj[prop] = JSON.stringify(value);
+        return true
+    },
+    get: (obj, prop) => {
+        try {
+            return JSON.parse(obj[prop]);
+        }
+        catch(error) {
+            return defaults[prop];
+        }
+    },
+}
+const settings = new Proxy(localStorage, stevedore);
 /*
 *
 * Initialize

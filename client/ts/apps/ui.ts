@@ -1,3 +1,19 @@
+const UserStrings = {
+    largeFile: "You are uploading a large file. This may disrupt your connection. Proceed?",
+    introMessage: "**Tip**: Address users privately with `@`, and link to other channels with `#`.",
+}
+let state = {
+    title: document.title,
+    channel: location.hash,
+    username: "",
+    users: new Set(),
+    messages: [UserStrings.introMessage],
+    uploads: [],
+    get loggedIn() { return ws && ws.readyState === 1 },
+    get streamingOn() { return Object.keys(peerStreams).length > 0 },
+}
+defaults["chatOn"] = false;
+defaults["settingsOn"] = false;
 function changeChannel() {
     let current = state.channel || "lobby";
     let ans = prompt(`You are in the channel "${current}". Where do you want to go?`);
@@ -14,11 +30,11 @@ function onPeerVolume(e:CustomEvent) {
 function onStream(user) {
     let root = document.querySelector("#streamGrid");
     m.render(root, Object.keys(peerStreams).sort().map(viewStream));
-    if(user===state.username&&peerStreams[user]) detectAudio(peerStreams[user]);
+    if(user===settings.username&&peerStreams[user]) detectAudio(peerStreams[user]);
 }
 var viewStream = (user) => {
     let attributes = {
-        muted: user === state.username,
+        muted: user === settings.username,
         srcObject: peerStreams[user],
     }
     return m(`div.streamContainer.${user}`,
@@ -35,8 +51,8 @@ let Login = {
         return m("#splash", [
             m("form[name=login].bar", {onsubmit: login}, [
                 m("input[name=username]", {
-                    oninput: (e)=>{state.username=e.target.value},
-                    value: state.username,
+                    oninput: (e)=>{settings.username=e.target.value},
+                    value: settings.username,
                     autocomplete: "off",
                     placeholder: "pick any username!",
                 }),
@@ -47,13 +63,13 @@ let Login = {
     }
 }
 let Chat = {
-    view: () => !state.chatOn?[]:m("div#chat", [
+    view: () => !settings.chatOn?[]:m("div#chat", [
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
-          m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
-          m("input[name=text]", {autocomplete: "off"}),
-          m("img", {onclick: post, src: "svg/post.svg", title: "post message"}),
-          m("img", {src: "svg/upload.svg", onclick: upload, title: "upload file"}),
+            m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
+            m("input[name=text]", {autocomplete: "off"}),
+            m("img", {onclick: post, src: "svg/post.svg", title: "post message"}),
+            m("img", {src: "svg/upload.svg", onclick: upload, title: "upload file"}),
         ),
         m(Upload),
         m("details#chat-userlist",
@@ -63,16 +79,33 @@ let Chat = {
     ])
 }
 let Settings = {
-    view: ()=> !state.settingsOn?[]:m("div#settings", [
-        m("div", "hi")
+    view: ()=> !settings.settingsOn?[]:m("div.central-container", [
+        m("div#settings", Object.keys(defaults).map(k=>
+            [
+                m("label", k),
+                opts[k]
+                ?
+                m("select", {
+                    onchange: (e) => settings[k] = JSON.parse(e.target.value),
+                    value: JSON.stringify(settings[k]),
+                },
+                [defaults[k], ...opts[k]].map(o => m("option", JSON.stringify(o)))
+                )
+                :
+                m("input", {
+                    onchange: (e) => settings[k] = JSON.parse(e.target.value),
+                    value: JSON.stringify(settings[k]),
+                })
+            ]
+        )),
     ])
 }
 let Nav = {
     view: ()=>m("nav.bar", [
         m("img", {src: "svg/channel.svg", onclick: changeChannel, title: "channel"}),
-        m("img", {src: "svg/stream.svg", style: {opacity: currentConstraints?1:0.5}, onclick: ()=>currentConstraints?streamingStop():streamingStart(), title: "stream"}),
-        m("img", {src: "svg/chat.svg", style: {opacity: state.chatOn?1:0.5}, onclick: ()=>state.chatOn=!state.chatOn, title: "chat"}),
-        m("img", {src: "svg/settings.svg", style: {opacity: state.settingsOn?1:0.5}, onclick: ()=>state.settingsOn=!state.settingsOn, title: "settings"}),
+        m("img", {src: "svg/stream.svg", style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart(), title: "stream"}),
+        m("img", {src: "svg/chat.svg", style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn, title: "chat"}),
+        m("img", {src: "svg/settings.svg", style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn, title: "settings"}),
         m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
     ])
 }
@@ -92,13 +125,9 @@ addEventListener("socketError", (e:CustomEvent) => {
     if(e.detail.value) { alert(e.detail.value); }
     m.redraw();
 });
-addEventListener("login", (e:CustomEvent) => {
-    state.status = `logged in as <b>${state.username}</b>`;
-    localStorage.username = JSON.stringify(state.username);
-    state.loggedIn = true;
+listen("login", (msg) => {
     m.redraw();
 });
 addEventListener("logout", (e:CustomEvent) => {
-    state.loggedIn = false;
     m.redraw();
 });

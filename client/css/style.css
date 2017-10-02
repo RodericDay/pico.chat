@@ -19,7 +19,7 @@ nav {
     position: fixed;
     bottom: 0;
 }
-#settings {
+.central-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -29,11 +29,13 @@ nav {
     justify-content: center;
     align-items: center;
 }
-#settings > * {
+#settings {
     background-color: white;
     padding: 5px;
     border-radius: 5px;
     box-shadow: 0 0 10px;
+    display: grid;
+    grid-template-columns: auto 1fr;
 }
 .bar * {
     font-size: 100%;

@@ -1,11 +1,13 @@
 marked.setOptions({sanitize: true});
-
+function renderPost(string) {
+    string = string.replace(/ (#\w+)/, (m, g)=>` [${g}](${g})`);
+    return m.trust(marked(string).replace(/a href/g, `a target="_blank" href`))
+}
 function login(event) {
     event.preventDefault();
-    openConnection(state.username, state.channel);
+    openConnection(settings.username, state.channel);
 }
 function logout() {
-    state.status = "";
     ws.close();
 }
 function clear() {
@@ -27,17 +29,13 @@ function post(e) {
     }
     else if(target) {//private
         wire("post", text.value, target);
-        wire("post", text.value, state.username); // self
+        wire("post", text.value, settings.username); // self
         text.value = `@${target} `;
     }
     else if(text.value) {//public
         wire("post", text.value);
         text.value = "";
     }
-}
-function renderPost(string) {
-    string = string.replace(/ (#\w+)/, (m, g)=>` [${g}](${g})`);
-    return m.trust(marked(string).replace(/a href/g, `a target="_blank" href`))
 }
 function scrollToNewest() {
     var _ = function() {
@@ -63,7 +61,7 @@ addEventListener("disconnect", (e:CustomEvent)=>{
 });
 addEventListener("post", (e:CustomEvent)=>{
     if(!document.hasFocus()&&document.title===state.title){document.title+=' (!)'}
-    if(document.hasFocus()!==state.chatOn){beep()};
+    if(document.hasFocus()!==settings.chatOn){beep()};
     state.messages.push(`${e.detail.sender}: ${e.detail.value}`);
     localStorage.messages = JSON.stringify(state.messages);
     m.redraw();
