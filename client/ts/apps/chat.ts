@@ -1,4 +1,4 @@
-marked.setOptions({sanitize: true});
+marked.setOptions({sanitize: true, gfm: true});
 function renderPost(string) {
     string = string.replace(/ (#\w+)/, (m, g)=>` [${g}](${g})`);
     return m.trust(marked(string).replace(/a href/g, `a target="_blank" href`))
