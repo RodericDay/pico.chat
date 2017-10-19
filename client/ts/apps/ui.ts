@@ -60,78 +60,81 @@ let Login = {
                     autocomplete: "off",
                     placeholder: "pick any username!",
                 }),
-                m("button", {style: "display:none;"}),
-                m("img", {src: "svg/login.svg", onclick: login, title: "log in"}),
+                m("button", {onclick: login}, "log in"),
             ]),
         ])
     }
+}
+let Upload = {
+    view: ()=>[
+        m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
+        state.uploads.map(([name, url, size], i)=>[
+                m("a", {download: name, href: url}, `${name} (${size})`),
+            ]
+        ),
+   ]
 }
 let Chat = {
     view: () => !settings.chatOn?[]:m("div#chat", [
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
-            m("img", {onclick: clear, src: "svg/clear.svg", title: "clear log"}),
+            m("button", {onclick: clear}, "clear"),
             m("input[name=text]", {autocomplete: "off"}),
-            m("img", {onclick: post, src: "svg/post.svg", title: "post message"}),
-            m("img", {src: "svg/upload.svg", onclick: upload, title: "upload file"}),
+            m("button", {onclick: post}, "post"),
+            m("button", {onclick: upload}, "upload"),
         ),
         m(Upload),
+    ])
+}
+let Settings = {
+    view: ()=> !settings.settingsOn?[]:m("div.central-container", [
+        m("table#settings", Object.keys(defaults).map(k=>
+            m("tr", [
+                m("td", k),
+                m("td", opts[k]
+                    ? m("select", {
+                        onchange: (e) => settings[k] = JSON.parse(e.target.value),
+                        value: JSON.stringify(settings[k]),
+                    },
+                    [defaults[k], ...opts[k]].map(o => m("option", JSON.stringify(o)))
+                    )
+                    : m("input", {
+                        onchange: (e) => settings[k] = JSON.parse(e.target.value),
+                        value: JSON.stringify(settings[k]),
+                    })
+                )
+            ]),
+        )),
+        m("button", {onclick: changeChannel}, "change channel"),
+    ])
+}
+let Nav = {
+    view: ()=>m("nav.bar", [
+        m("button", {style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn}, "settings"),
+        m("button", {style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn}, "chat"),
+        m("button", {style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart()}, "stream"),
+        m("button", {onclick: logout}, "log out"),
         m("details#chat-userlist",
             m("summary#chat-usercount", `${state.channel||"lobby"} (${state.users.size} online)`),
             m("div", sorted(state.users).join(', ')),
         ),
     ])
 }
-let Settings = {
-    view: ()=> !settings.settingsOn?[]:m("div.central-container", [
-        m("div#settings", Object.keys(defaults).map(k=>
-            [
-                m("label", k),
-                opts[k]
-                ?
-                m("select", {
-                    onchange: (e) => settings[k] = JSON.parse(e.target.value),
-                    value: JSON.stringify(settings[k]),
-                },
-                [defaults[k], ...opts[k]].map(o => m("option", JSON.stringify(o)))
-                )
-                :
-                m("input", {
-                    onchange: (e) => settings[k] = JSON.parse(e.target.value),
-                    value: JSON.stringify(settings[k]),
-                })
-            ]
-        )),
-    ])
-}
-let Nav = {
-    view: ()=>m("nav.bar", [
-        m("img", {src: "svg/channel.svg", onclick: changeChannel, title: "channel"}),
-        m("img", {src: "svg/stream.svg", style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart(), title: "stream"}),
-        m("img", {src: "svg/chat.svg", style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn, title: "chat"}),
-        m("img", {src: "svg/settings.svg", style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn, title: "settings"}),
-        m("img", {src: "svg/logout.svg", onclick: logout, title: "log out"}),
-    ])
-}
 let Main = {
     view: ()=>
         state.loggedIn
-        ? [m(Chat), m(Streams), m(Settings), m(Nav)]
+        ? [m(Nav), m(Settings), m(Chat), m(Streams)]
         : [m(Login)]
 }
 listen("onStream", onStream);
 addEventListener("peerVolume", onPeerVolume);
-addEventListener("peerUpdate", (e)=>{m.redraw()});
-addEventListener("socketEvent", (e:CustomEvent) => {
-    m.redraw();
-});
-addEventListener("socketError", (e:CustomEvent) => {
-    if(e.detail.value) { alert(e.detail.value); }
-    m.redraw();
-});
-listen("login", (msg) => {
-    m.redraw();
-});
-addEventListener("logout", (e:CustomEvent) => {
-    m.redraw();
-});
+listen("socketEvent", m.redraw);
+listen("login", m.redraw);
+listen("logout", m.redraw);
+listen("peerUpdate", m.redraw);
+listen("socketError",
+    (msg) => {
+        if(msg) { alert(msg); }
+        m.redraw();
+    }
+);

@@ -13,15 +13,6 @@ function uploadFile(event) {
 function upload() {
     (document.getElementById("fileInput") as HTMLInputElement).click();
 }
-let Upload = {
-    view: ()=>[
-        m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
-        state.uploads.map(([name, url, size], i)=>[
-                m("a", {download: name, href: url}, `${name} (${size})`),
-            ]
-        ),
-   ]
-}
 addEventListener("fileTransfer", (e:CustomEvent)=>{
     let file = e.detail.value;
     let array = new Uint8Array(file.data.length).fill(0).map((_,i)=>file.data.charCodeAt(i));
