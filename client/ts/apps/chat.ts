@@ -1,17 +1,10 @@
-marked.setOptions({sanitize: true, gfm: true});
+marked.setOptions({sanitize: true});
 function renderPost(string) {
     string = string.replace(/ (#\w+)/, (m, g)=>` [${g}](${g})`);
     return m.trust(marked(string).replace(/a href/g, `a target="_blank" href`))
 }
-function login(event) {
-    event.preventDefault();
-    openConnection(settings.username, state.channel);
-}
-function logout() {
-    ws.close();
-}
 function clear() {
-    var msg = `You sure you want to delete ${state.messages.length} messages?`
+    var msg = `You sure you want to delete ${state.messages.length} messages?`;
     if(confirm(msg)) {
         state.messages = [];
         localStorage.removeItem("messages");

@@ -69,8 +69,6 @@ body {
     align-items: end;
 }
 #chat-form button, nav button, #splash button {
-    width: 30px;
-    height: 30px;
     color: transparent;
     border: none;
     vertical-align: bottom;
@@ -84,6 +82,20 @@ body {
     resize: vertical;
     margin: 0;
     padding: 0;
+}
+#chat-form button {
+    width: 30px;
+    height: 30px;
+}
+nav button, #splash button {
+    width: 64px;
+    height: 64px;
+}
+#chat-form [name=text] {
+    height: 30px;
+}
+#splash [name=username] {
+    height: 64px;
 }
 #chat-form button:nth-of-type(1) {
     background-image: url("/svg/clear.svg");
@@ -110,6 +122,24 @@ nav button:nth-of-type(4) {
     background-image: url("/svg/login.svg");
 }
 
+
+.central-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 999;
+}
+#settings {
+    max-width: 80vw;
+    pointer-events: visiblePainted;
+    background-color: white;
+}
 #settings td:nth-of-type(1) {
     text-align: right;
 }
@@ -134,17 +164,6 @@ nav button:nth-of-type(4) {
         radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 8px 9px;
     background-color:#282828;
     background-size:16px 16px;
-
-.central-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: grid;
-    justify-content: center;
-    align-items: center;
-}
 
 .bar * {
     font-size: 100%;

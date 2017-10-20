@@ -44,10 +44,6 @@ function detectAudio(stream) {
         }
     }
 }
-function humanize(sizeInBytes) {
-    let chunk = (u,i) => [+(sizeInBytes/Math.pow(10,3*i)).toFixed(1),u];
-    return ['B','KB','MB','GB'].map(chunk).filter(([n,u])=>n>1).pop().join(' ')
-}
 function isEmpty(object) {
     return Object.keys(object).length > 0
 }

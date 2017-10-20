@@ -12,7 +12,7 @@ function wire(kind, value, target=undefined, sender=wsUser) {
     if(value.constructor.name !== "String") {
         value = JSON.stringify(value);
     }
-    ws.send(JSON.stringify({kind: kind, value: value, sender: sender, target: target}));
+    ws.send(JSON.stringify({kind, value, sender, target}));
 }
 function openConnection(username, channel) {
     ws = new WebSocket(settings.wsUrl);
@@ -171,18 +171,22 @@ async function streamingStop() {
 *
 */
 let defaults = {
+    username: "",
+    channel: location.hash,
     wsUrl: "wss://permanentsignal.com/ws/",
-    iceServers: [{urls: ['stun:stun.l.google.com:19302']},],
+    iceServers: [],
+    controls: false,
     audio: true,
     video: {width: {ideal: 320}, facingMode: "user"},
     videoFilter: "none",
-    videoTransform: "none",
+    videoTransform: "scaleX(-1)",
 }
 const opts = {
     audio: [false],
+    controls: [true],
     video: [true, false, {mediaSource: 'screen'}, {mediaSource: 'window'}],
     videoFilter: ["invert(1)", "grayscale(1)", "sepia(1)", "blur(3px)"],
-    videoTransform: ["scaleX(-1)"],
+    videoTransform: ["none"],
 }
 const stevedore = {
     set: (obj, prop, value) => {

@@ -4,8 +4,6 @@ const UserStrings = {
 }
 let state = {
     title: document.title,
-    channel: location.hash,
-    username: "",
     users: new Set(),
     messages: [UserStrings.introMessage],
     uploads: [],
@@ -14,8 +12,15 @@ let state = {
 }
 defaults["chatOn"] = true;
 defaults["settingsOn"] = false;
+function login(event) {
+    event.preventDefault();
+    openConnection(settings.username, settings.channel);
+}
+function logout() {
+    ws.close();
+}
 function changeChannel() {
-    let current = state.channel || "lobby";
+    let current = settings.channel || "lobby";
     let ans = prompt(`You are in the channel "${current}". Where do you want to go?`);
     if(ans===null) return
     location.hash = ans;
@@ -38,11 +43,14 @@ var viewStream = (user) => {
             filter: settings.videoFilter,
             transform: settings.videoTransform,
         },
+        playsinline: true,
+        autoplay: true,
+        controls: settings.controls,
         muted: user === settings.username,
         srcObject: peerStreams[user],
     }
     return m(`div.streamContainer.${user}`,
-        m("video[controls][autoplay][playsinline]", attributes),
+        m("video", attributes),
         m("div.info", user),
     )
 }
@@ -53,7 +61,7 @@ let Streams = {
 let Login = {
     view: function() {
         return m("#splash", [
-            m("form[name=login].bar", {onsubmit: login}, [
+            m("form[name=login]", {onsubmit: login}, [
                 m("input[name=username]", {
                     oninput: (e)=>{settings.username=e.target.value},
                     value: settings.username,
@@ -105,36 +113,39 @@ let Settings = {
                 )
             ]),
         )),
-        m("button", {onclick: changeChannel}, "change channel"),
     ])
 }
 let Nav = {
-    view: ()=>m("nav.bar", [
+    view: ()=>m("nav", [
         m("button", {style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn}, "settings"),
         m("button", {style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn}, "chat"),
         m("button", {style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart()}, "stream"),
         m("button", {onclick: logout}, "log out"),
         m("details#userlist",
-            m("summary#status", `${state.channel||"lobby"} (${state.users.size} online)`),
+            m("summary#status", `${settings.channel||"lobby"} (${state.users.size} online)`),
             m("div", sorted(state.users).join(', ')),
         ),
     ])
 }
 let Main = {
+    async oninit() {
+        settings.iceServers = await m.request("/turnservers.json");
+    },
     view: ()=>
         state.loggedIn
         ? [m(Nav), m(Settings), m(Chat), m(Streams)]
         : [m(Login)]
 }
-listen("onStream", onStream);
 addEventListener("peerVolume", onPeerVolume);
+listen("onStream", onStream);
 listen("socketEvent", m.redraw);
 listen("login", m.redraw);
 listen("logout", m.redraw);
 listen("peerUpdate", m.redraw);
 listen("socketError",
     (msg) => {
-        if(msg) { alert(msg); }
+        console.log(msg);
+        if(msg) { alert(msg.value); }
         m.redraw();
     }
 );
