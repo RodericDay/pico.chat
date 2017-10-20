@@ -1,3 +1,5 @@
+defaults["chatOn"] = true;
+defaults["settingsOn"] = false;
 const UserStrings = {
     largeFile: "You are uploading a large file. This may disrupt your connection. Proceed?",
     introMessage: "**Tip**: Address users privately with `@`, and link to other channels with `#`.",
@@ -10,8 +12,6 @@ let state = {
     get loggedIn() { return ws && ws.readyState === 1 },
     get streamingOn() { return Object.keys(peerStreams).length > 0 },
 }
-defaults["chatOn"] = true;
-defaults["settingsOn"] = false;
 function login(event) {
     event.preventDefault();
     openConnection(settings.username, settings.channel);
@@ -95,18 +95,26 @@ let Chat = {
     ])
 }
 let Settings = {
-    view: ()=> !settings.settingsOn?[]:m("div.central-container", [
-        m("table#settings", Object.keys(defaults).map(k=>
+    view: ()=> !settings.settingsOn?[]:m("div.centered-overlay",
+        {
+            onclick(e){ settings.settingsOn=false },
+        },
+        [
+        m("table#settings",
+        {
+            onclick(e){ e.stopPropagation() },
+        },
+        Object.keys(defaults).map(k=>
             m("tr", [
                 m("td", k),
                 m("td", opts[k]
-                    ? m("select", {
-                        onchange: (e) => settings[k] = JSON.parse(e.target.value),
+                ? m("select", {
+                        onchange(e){ settings[k] = JSON.parse(e.target.value) },
                         value: JSON.stringify(settings[k]),
                     },
                     [defaults[k], ...opts[k]].map(o => m("option", JSON.stringify(o)))
                     )
-                    : m("input", {
+                : m("input", {
                         onchange: (e) => settings[k] = JSON.parse(e.target.value),
                         value: JSON.stringify(settings[k]),
                     })
