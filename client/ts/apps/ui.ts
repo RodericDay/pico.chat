@@ -2,7 +2,10 @@ defaults["chatOn"] = true;
 defaults["settingsOn"] = false;
 const UserStrings = {
     largeFile: "You are uploading a large file. This may disrupt your connection. Proceed?",
-    introMessage: "**Tip**: Address users privately with `@`, and link to other channels with `#`.",
+    introMessage:
+        "**Tip**: Address users privately with `@`, and link to other channels with `#`."
+        + "\n\n" + "Use `shift+enter` to quick-post a message."
+    ,
 }
 let state = {
     title: document.title,
@@ -18,6 +21,11 @@ function login(event) {
 }
 function logout() {
     ws.close();
+}
+function hotkey(e) {
+    if(e.shiftKey) switch(e.key) {
+        case 'Enter': e.preventDefault(); post(); break;
+    }
 }
 function changeChannel() {
     let current = settings.channel || "lobby";
@@ -83,11 +91,20 @@ let Upload = {
    ]
 }
 let Chat = {
-    view: () => !settings.chatOn?[]:m("div#chat", [
+    oncreate: function(vnode) {
+        scrollToNewest();
+        let delayed = () => vnode.dom.classList.remove("enter");
+        return new Promise((resolve) => {setTimeout(delayed, 500)})
+    },
+    onbeforeremove: function(vnode) {
+        vnode.dom.classList.add("exit");
+        return new Promise((resolve) => {setTimeout(resolve, 500)})
+    },
+    view: () => m("div#chat.enter", [
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
             m("button", {onclick: clear}, "clear"),
-            m("textarea[name=text]", {autocomplete: "off"}),
+            m("textarea[name=text]", {onkeydown: hotkey, autocomplete: "off"}),
             m("button", {onclick: post}, "post"),
             m("button", {onclick: upload}, "upload"),
         ),
@@ -95,7 +112,7 @@ let Chat = {
     ])
 }
 let Settings = {
-    view: ()=> !settings.settingsOn?[]:m("div.centered-overlay",
+    view: ()=> m("div.centered-overlay",
         {
             onclick(e){ settings.settingsOn=false },
         },
@@ -141,7 +158,7 @@ let Main = {
     },
     view: ()=>
         state.loggedIn
-        ? [m(Nav), m(Settings), m(Chat), m(Streams)]
+        ? [settings.chatOn?m(Chat):null, m(Nav), settings.settingsOn?m(Settings):null, m(Streams)]
         : [m(Login)]
 }
 addEventListener("peerVolume", onPeerVolume);
@@ -153,7 +170,7 @@ listen("peerUpdate", m.redraw);
 listen("socketError",
     (msg) => {
         console.log(msg);
-        if(msg) { alert(msg.value); }
+        if(msg) { alert(msg.value || msg); }
         m.redraw();
     }
 );

@@ -10,8 +10,8 @@ function clear() {
         localStorage.removeItem("messages");
     }
 }
-function post(e) {
-    e.preventDefault();
+function post(e?) {
+    if(e){e.preventDefault();}
     let text = document.getElementById("chat-form")["text"];
     let [msg, target] = text.value.match(/^@(\w+)/)||[text.value,null];
     if(target&&text.value.trim()===`@${target}`) {
