@@ -27,6 +27,14 @@ function hotkey(e) {
     if(e.shiftKey) switch(e.key) {
         case 'Enter': e.preventDefault(); post(); break;
     }
+    else switch(e.key) {
+        case 'Tab':
+            e.preventDefault();
+            let chars = e.target.value.split('');
+            chars.splice(e.target.selectionStart, e.target.selectionEnd-e.target.selectionStart, '    ');
+            e.target.value = chars.join('');
+            break;
+    }
 }
 function changeChannel() {
     let current = settings.channel || "lobby";
