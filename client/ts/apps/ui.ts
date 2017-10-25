@@ -12,7 +12,7 @@ let state = {
     users: new Set(),
     messages: [UserStrings.introMessage],
     uploads: [],
-    get loggedIn() { return ws && ws.readyState === 1 },
+    get loggedIn() { return ws && ws.readyState === 1 && state.users.size > 0 },
     get streamingOn() { return Object.keys(peerStreams).length > 0 },
 }
 function login(event) {
@@ -20,6 +20,7 @@ function login(event) {
     openConnection(settings.username, settings.channel);
 }
 function logout() {
+    state.users.clear();
     ws.close();
 }
 function hotkey(e) {
@@ -167,10 +168,8 @@ listen("socketEvent", m.redraw);
 listen("login", m.redraw);
 listen("logout", m.redraw);
 listen("peerUpdate", m.redraw);
-listen("socketError",
-    (msg) => {
-        console.log(msg);
-        if(msg) { alert(msg.value || msg); }
+addEventListener("socketError", (event:CustomEvent) => {
+        if(event.detail) { alert(event.detail.value) };
         m.redraw();
     }
 );

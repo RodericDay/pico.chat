@@ -38,8 +38,8 @@ function openConnection(username, channel) {
         }
         signal(message.kind, message);
     }
-    ws.onerror = (error) => {
-        signal("socketError", error);
+    ws.onerror = (e) => {
+        signal("socketError", e);
     }
 }
 /*
@@ -146,6 +146,7 @@ async function streamingStart() {
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
             }
             catch(error) {
+                wire("post", `Failed to set ${JSON.stringify(constraints)} with error ${JSON.stringify(error)}`);
                 console.log("Adjusting settings for iPhone");
                 constraints.video.width.ideal = 352; // x 288
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
