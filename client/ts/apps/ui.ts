@@ -85,7 +85,7 @@ let Login = {
                     autocomplete: "off",
                     placeholder: "pick any username!",
                 }),
-                m("button", {onclick: login}, "log in"),
+                m("button.login", {onclick: login}, "log in"),
             ]),
         ])
     }
@@ -112,10 +112,10 @@ let Chat = {
     view: () => m("div#chat.enter", [
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
-            m("button", {onclick: clear}, "clear"),
+            m("button.clear", {onclick: clear}, "clear"),
             m("textarea[name=text]", {onkeydown: hotkey, autocomplete: "off"}),
-            m("button", {onclick: post}, "post"),
-            m("button", {onclick: upload}, "upload"),
+            m("button.post", {onclick: post}, "post"),
+            m("button.upload", {onclick: upload}, "upload"),
         ),
         m(Upload),
     ])
@@ -151,10 +151,10 @@ let Settings = {
 }
 let Nav = {
     view: ()=>m("nav", [
-        m("button", {style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn}, "settings"),
-        m("button", {style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn}, "chat"),
-        m("button", {style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart()}, "stream"),
-        m("button", {onclick: logout}, "log out"),
+        m("button.logout", {onclick: logout}, "log out"),
+        m("button.settings", {style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn}, "settings"),
+        m("button.chat", {style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn}, "chat"),
+        m("button.stream", {style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart()}, "stream"),
         m("details#userlist",
             m("summary#status", `${settings.channel||"lobby"} (${state.users.size} online)`),
             m("div", sorted(state.users).join(', ')),

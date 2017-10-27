@@ -111,30 +111,6 @@ nav button, #splash button {
 #splash [name=username] {
     height: 64px;
 }
-#chat-form button:nth-of-type(1) {
-    background-image: url("/svg/clear.svg");
-}
-#chat-form button:nth-of-type(2) {
-    background-image: url("/svg/post.svg");
-}
-#chat-form button:nth-of-type(3) {
-    background-image: url("/svg/upload.svg");
-}
-nav button:nth-of-type(1) {
-    background-image: url("/svg/settings.svg");
-}
-nav button:nth-of-type(2) {
-    background-image: url("/svg/chat.svg");
-}
-nav button:nth-of-type(3) {
-    background-image: url("/svg/stream.svg");
-}
-nav button:nth-of-type(4) {
-    background-image: url("/svg/logout.svg");
-}
-#splash button:nth-of-type(1) {
-    background-image: url("/svg/login.svg");
-}
 
 
 .centered-overlay {
@@ -162,29 +138,27 @@ nav button:nth-of-type(4) {
     width: 100%;
 }
 
-    /* http://lea.verou.me/css3patterns/ *
-    background:
-        radial-gradient(black 15%, transparent 16%) 0 0,
-        radial-gradient(black 15%, transparent 16%) 8px 8px,
-        radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 0 1px,
-        radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 8px 9px;
-    background-color:#282828;
-    background-size:16px 16px;
-
-.bar * {
-    font-size: 100%;
-    height: 64px;
-    vertical-align: top; /* input baseline issue
-/*
-    padding: 0;
-    margin: 0;
-    border: none;
-    border-radius: 0;
+button.chat {
+    background-image: url("/svg/chat.svg");
 }
-#splash {
-    width: 100vw;
-    height: 100vh;
-    display: grid;
-    justify-content: center;
-    align-content: center;
+button.clear {
+    background-image: url("/svg/clear.svg");
+}
+button.settings {
+    background-image: url("/svg/settings.svg");
+}
+button.stream {
+    background-image: url("/svg/stream.svg");
+}
+button.post {
+    background-image: url("/svg/post.svg");
+}
+button.login {
+    background-image: url("/svg/login.svg");
+}
+button.logout {
+    background-image: url("/svg/logout.svg");
+}
+button.upload {
+    background-image: url("/svg/upload.svg");
 }
