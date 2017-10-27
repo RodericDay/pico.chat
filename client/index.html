@@ -18,7 +18,9 @@
         window.onload = () => {
             m.mount(app, Main);
             settings.channel = location.hash;
-            if(settings.username){openConnection(settings.username, settings.channel)};
+            if(settings.username){
+                setTimeout(openConnection, 1000, settings.username, settings.channel);
+            }
         }
         </script>
     </head>

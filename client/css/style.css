@@ -124,6 +124,9 @@ form[name=login] {
 nav {
     white-space: nowrap;
 }
+nav > * {
+    float: left;
+}
 nav button {
     width: 64px;
     height: 64px;

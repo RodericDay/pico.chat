@@ -131,18 +131,22 @@ const Settings = {
     ])
 }
 const Actions = {
-    view: () => m("span", [
+    oncreate: growWidth,
+    onbeforeremove: shrinkWidth,
+    view: () => m("div", [
         m("button.settings", {style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn}, "settings"),
         m("button.chat", {style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn}, "chat"),
         m("button.stream", {style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart()}, "stream"),
-        m("details#userlist",
-            m("summary#status", `${settings.channel||"lobby"} (${state.users.size} online)`),
-            m("div", sorted(state.users).join(', ')),
-        ),
+        // m("details#userlist",
+        //     m("summary#status", `${settings.channel||"lobby"} (${state.users.size} online)`),
+        //     m("div", sorted(state.users).join(', ')),
+        // ),
     ])
 }
 const Login = {
-    view: () => m("span", [
+    oncreate: growWidth,
+    onbeforeremove: shrinkWidth,
+    view: () => m("div", [
         m("form[name=login]", {onsubmit: login}, [
             m("input[name=username]", {
                 oninput: (e)=>{settings.username=e.target.value},
@@ -156,8 +160,8 @@ const Login = {
 const Nav = {
     view: ()=>m("nav",
         state.loggedIn
-        ? [m("button.logout", {onclick: logout}, "log out"), m(Actions)]
-        : [m(Login), m("button.login", {onclick: login}, "log in")]
+        ? [m("div", {key:1}), m("button.logout", {onclick: logout}, "log out"), m(Actions)]
+        : [m(Login, {key:1}), m("button.login", {onclick: login}, "log in")]
     )
 }
 const Main = {
