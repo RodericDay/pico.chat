@@ -10,9 +10,28 @@ function clear() {
         localStorage.removeItem("messages");
     }
 }
+function hotkey(e) {
+    const pressed = (e.shiftKey?"Shift":"") + e.key;
+    switch(pressed) {
+        case 'ShiftEnter':
+            e.preventDefault();
+            e.target.value += '\n';
+            break;
+        case 'Enter':
+            e.preventDefault();
+            post();
+            break;
+        case 'Tab':
+            e.preventDefault();
+            let chars = e.target.value.split('');
+            chars.splice(e.target.selectionStart, e.target.selectionEnd-e.target.selectionStart, '    ');
+            e.target.value = chars.join('');
+            break;
+    }
+}
 function post(e?) {
     if(e){e.preventDefault();}
-    let text = document.getElementById("chat-form")["text"];
+    let text = <HTMLInputElement>document.getElementById("chat-input");
     let [msg, target] = text.value.match(/^@(\w+)/)||[text.value,null];
     if(target&&text.value.trim()===`@${target}`) {
         // pass, assume user still typing

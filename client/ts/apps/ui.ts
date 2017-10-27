@@ -3,9 +3,7 @@ defaults["settingsOn"] = false;
 const UserStrings = {
     largeFile: "You are uploading a large file. This may disrupt your connection. Proceed?",
     introMessage:
-        "**Tip**: Address users privately with `@`, and link to other channels with `#`."
-        + "\n\n" + "Use `shift+enter` to quick-post a message."
-    ,
+        "**Tip**: Address users privately with `@`, and link to other channels with `#`.",
 }
 let state = {
     title: document.title,
@@ -23,19 +21,6 @@ function login(event) {
 function logout() {
     state.users.clear();
     ws.close();
-}
-function hotkey(e) {
-    if(e.shiftKey) switch(e.key) {
-        case 'Enter': e.preventDefault(); post(); break;
-    }
-    else switch(e.key) {
-        case 'Tab':
-            e.preventDefault();
-            let chars = e.target.value.split('');
-            chars.splice(e.target.selectionStart, e.target.selectionEnd-e.target.selectionStart, '    ');
-            e.target.value = chars.join('');
-            break;
-    }
 }
 function changeChannel() {
     let current = settings.channel || "lobby";
@@ -93,12 +78,12 @@ const Chat = {
     onbeforeremove: shrinkHeight,
     view: () => m("div#chat", [
         m("div#chat-log", state.messages.map(renderPost)),
-        m("form#chat-form", {onsubmit: post},
+        m("div#chat-bar", [
             m("button.clear", {onclick: clear}, "clear"),
-            m("textarea[name=text]", {onkeydown: hotkey, autocomplete: "off"}),
+            m("textarea#chat-input", {onkeydown: hotkey, autocomplete: "off"}),
             m("button.post", {onclick: post}, "post"),
             m("button.upload", {onclick: upload}, "upload"),
-        ),
+        ]),
         m(Upload),
     ])
 }

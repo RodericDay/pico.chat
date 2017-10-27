@@ -9,13 +9,13 @@ body {
     top: 0;
     left: 0;
 }
-#chat-form button, nav button {
+#chat button, nav button {
     color: transparent;
     border: none;
     vertical-align: bottom;
 }
-#chat-form input, nav input,
-#chat-form textarea, nav textarea {
+#chat input, nav input,
+#chat textarea, nav textarea {
     border: none;
     border-radius: 0;
     outline: none; /* chrome glow */
@@ -76,19 +76,18 @@ body {
     padding: 3px;
     border-radius: 3px;
 }
-#chat-form {
+#chat-bar {
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     align-items: end;
 }
-#chat-form [name=text] {
-    resize: vertical;
-}
 form[name=login] {
     display: inline;
 }
-[name=text] {
+#chat-input {
+    resize: vertical;
     height: 30px;
+    min-height: 30px;
 }
 [name=username] {
     height: 64px;
@@ -131,7 +130,7 @@ nav button {
     width: 64px;
     height: 64px;
 }
-#chat-form button {
+#chat button {
     width: 30px;
     height: 30px;
 }
