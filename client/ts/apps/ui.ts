@@ -123,10 +123,10 @@ const Actions = {
         m("button.settings", {style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn}, "settings"),
         m("button.chat", {style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn}, "chat"),
         m("button.stream", {style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart()}, "stream"),
-        // m("details#userlist",
-        //     m("summary#status", `${settings.channel||"lobby"} (${state.users.size} online)`),
-        //     m("div", sorted(state.users).join(', ')),
-        // ),
+        m("details#userlist",
+            m("summary#status", `${settings.channel||"lobby"} (${state.users.size} online)`),
+            m("div", sorted(state.users).join(', ')),
+        ),
     ])
 }
 const Login = {
