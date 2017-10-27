@@ -102,14 +102,12 @@ let Upload = {
 let Chat = {
     oncreate: function(vnode) {
         scrollToNewest();
-        let delayed = () => vnode.dom.classList.remove("enter");
-        return new Promise((resolve) => {setTimeout(delayed, 500)})
+        growFromTop(vnode.dom);
     },
     onbeforeremove: function(vnode) {
-        vnode.dom.classList.add("exit");
-        return new Promise((resolve) => {setTimeout(resolve, 500)})
+        return shrinkToTop(vnode.dom)
     },
-    view: () => m("div#chat.enter", [
+    view: () => m("div#chat", [
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
             m("button.clear", {onclick: clear}, "clear"),
