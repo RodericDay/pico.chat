@@ -19,6 +19,7 @@
             m.mount(app, Main);
             settings.channel = location.hash;
             if(settings.username){
+                state.busy = true;
                 setTimeout(openConnection, 1000, settings.username, settings.channel);
             }
         }

@@ -37,3 +37,10 @@ function shrinkWidth({dom:node}) {
     // return promise from handler to delay deletion of node
     return new Promise(cleanUp)
 }
+function fadeOut({dom:node}) {
+    node.style.transition = "opacity 500ms";
+    node.style.opacity = "0";
+    const cleanUp = (resolve) => node.ontransitionend = resolve;
+    // return promise from handler to delay deletion of node
+    return new Promise(cleanUp)
+}

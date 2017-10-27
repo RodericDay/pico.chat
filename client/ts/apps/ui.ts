@@ -12,6 +12,7 @@ let state = {
     users: new Set(),
     messages: [UserStrings.introMessage],
     uploads: [],
+    busy: false,
     get loggedIn() { return ws && ws.readyState === 1 && state.users.size > 0 },
     get streamingOn() { return Object.keys(peerStreams).length > 0 },
 }
@@ -164,14 +165,23 @@ const Nav = {
         : [m(Login, {key:1}), m("button.login", {onclick: login}, "log in")]
     )
 }
+const Loading = {
+    onbeforeremove: fadeOut,
+    view: ()=>m("div.centered-overlay", m("img", {src:"/svg/spinner.svg"}))
+}
 const Main = {
     async oninit() {
         settings.iceServers = await m.request("/turnservers.json");
     },
-    view: ()=>
+    view: ()=> [
         state.loggedIn
         ? [settings.chatOn?m(Chat):null, m(Nav), settings.settingsOn?m(Settings):null, m(Streams)]
-        : [m(Nav)]
+        : [m(Nav)],
+
+        state.busy
+        ? m(Loading)
+        : null,
+    ]
 }
 addEventListener("peerVolume", onPeerVolume);
 listen("onStream", onStream);
@@ -184,3 +194,6 @@ addEventListener("socketError", (event:CustomEvent) => {
         m.redraw();
     }
 );
+// display a loading screen to sort some race conditions re:animation/websockets
+listen("login", ()=>state.busy=false);
+listen("socketError", ()=>state.busy=false);
