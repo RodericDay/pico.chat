@@ -44,18 +44,18 @@ function changeChannel() {
     location.reload();
 }
 function onPeerVolume(e:CustomEvent) {
-    let user = e.detail.sender;
-    let isLoud = e.detail.value > 1000;
-    let div = document.querySelector(`.streamContainer.${user} .info`);
+    const user = e.detail.sender;
+    const isLoud = e.detail.value > 1000;
+    const div = document.querySelector(`.streamContainer.${user} .info`);
     if(div) isLoud ? div.classList.add("loud") : div.classList.remove("loud");
 }
 function onStream(user) {
-    let root = document.querySelector("#streamGrid");
+    const root = document.querySelector("#streamGrid");
     m.render(root, Object.keys(peerStreams).sort().map(viewStream));
     if(user===settings.username&&peerStreams[user]) detectAudio(peerStreams[user]);
 }
 var viewStream = (user) => {
-    let attributes = {
+    const attributes = {
         style: {
             filter: settings.videoFilter,
             transform: settings.videoTransform,
@@ -71,26 +71,11 @@ var viewStream = (user) => {
         m("div.info", user),
     )
 }
-let Streams = {
+const Streams = {
     // draw this manually for performance reasons
     view: ()=>  m("div#streamGrid", {subtree: "retain"})
 }
-let Login = {
-    view: function() {
-        return m("#splash", [
-            m("form[name=login]", {onsubmit: login}, [
-                m("input[name=username]", {
-                    oninput: (e)=>{settings.username=e.target.value},
-                    value: settings.username,
-                    autocomplete: "off",
-                    placeholder: "pick any username!",
-                }),
-                m("button.login", {onclick: login}, "log in"),
-            ]),
-        ])
-    }
-}
-let Upload = {
+const Upload = {
     view: ()=>[
         m("input#fileInput[type=file][multiple][hidden]", {onchange: uploadFile}),
         state.uploads.map(([name, url, size], i)=>[
@@ -99,14 +84,12 @@ let Upload = {
         ),
    ]
 }
-let Chat = {
+const Chat = {
     oncreate: function(vnode) {
         scrollToNewest();
-        growFromTop(vnode.dom);
+        growHeight(vnode);
     },
-    onbeforeremove: function(vnode) {
-        return shrinkToTop(vnode.dom)
-    },
+    onbeforeremove: shrinkHeight,
     view: () => m("div#chat", [
         m("div#chat-log", state.messages.map(renderPost)),
         m("form#chat-form", {onsubmit: post},
@@ -118,7 +101,7 @@ let Chat = {
         m(Upload),
     ])
 }
-let Settings = {
+const Settings = {
     view: ()=> m("div.centered-overlay",
         {
             onclick(e){ settings.settingsOn=false },
@@ -147,9 +130,8 @@ let Settings = {
         )),
     ])
 }
-let Nav = {
-    view: ()=>m("nav", [
-        m("button.logout", {onclick: logout}, "log out"),
+const Actions = {
+    view: () => m("span", [
         m("button.settings", {style: {opacity: settings.settingsOn?1:0.5}, onclick: ()=>settings.settingsOn=!settings.settingsOn}, "settings"),
         m("button.chat", {style: {opacity: settings.chatOn?1:0.5}, onclick: ()=>settings.chatOn=!settings.chatOn}, "chat"),
         m("button.stream", {style: {opacity: state.streamingOn?1:0.5}, onclick: ()=>state.streamingOn?streamingStop():streamingStart()}, "stream"),
@@ -159,14 +141,33 @@ let Nav = {
         ),
     ])
 }
-let Main = {
+const Login = {
+    view: () => m("span", [
+        m("form[name=login]", {onsubmit: login}, [
+            m("input[name=username]", {
+                oninput: (e)=>{settings.username=e.target.value},
+                value: settings.username,
+                autocomplete: "off",
+                placeholder: "pick any username!",
+            }),
+        ]),
+    ])
+}
+const Nav = {
+    view: ()=>m("nav",
+        state.loggedIn
+        ? [m("button.logout", {onclick: logout}, "log out"), m(Actions)]
+        : [m(Login), m("button.login", {onclick: login}, "log in")]
+    )
+}
+const Main = {
     async oninit() {
         settings.iceServers = await m.request("/turnservers.json");
     },
     view: ()=>
         state.loggedIn
         ? [settings.chatOn?m(Chat):null, m(Nav), settings.settingsOn?m(Settings):null, m(Streams)]
-        : [m(Login)]
+        : [m(Nav)]
 }
 addEventListener("peerVolume", onPeerVolume);
 listen("onStream", onStream);

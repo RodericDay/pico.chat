@@ -9,6 +9,21 @@ body {
     top: 0;
     left: 0;
 }
+#chat-form button, nav button {
+    color: transparent;
+    border: none;
+    vertical-align: bottom;
+}
+#chat-form input, nav input,
+#chat-form textarea, nav textarea {
+    border: none;
+    border-radius: 0;
+    outline: none; /* chrome glow */
+    background-color: lightgray;
+    margin: 0;
+    padding: 0;
+}
+
 
 /* 140px */
 #streamGrid {
@@ -41,14 +56,6 @@ body {
     color: lime;
 }
 
-#userlist {
-    /*border: 1px solid indigo;*/
-    /*background-color: thistle;*/
-}
-#status {
-    /*background-color: indigo;*/
-    /*color: white;*/
-}
 
 #chat {
     background-color: gray;
@@ -74,35 +81,16 @@ body {
     grid-template-columns: auto 1fr auto auto;
     align-items: end;
 }
-#chat-form button, nav button, #splash button {
-    color: transparent;
-    border: none;
-    vertical-align: bottom;
-}
-#chat-form [name=text], #splash [name=username] {
-    min-height: 30px;
-    border: none;
-    border-radius: 0;
-    outline: none; /* chrome glow */
-    background-color: lightgray;
-    margin: 0;
-    padding: 0;
-}
 #chat-form [name=text] {
     resize: vertical;
 }
-#chat-form button {
-    width: 30px;
+form[name=login] {
+    display: inline;
+}
+[name=text] {
     height: 30px;
 }
-nav button, #splash button {
-    width: 64px;
-    height: 64px;
-}
-#chat-form [name=text] {
-    height: 30px;
-}
-#splash [name=username] {
+[name=username] {
     height: 64px;
 }
 
@@ -132,6 +120,18 @@ nav button, #splash button {
     width: 100%;
 }
 
+
+nav {
+    white-space: nowrap;
+}
+nav button {
+    width: 64px;
+    height: 64px;
+}
+#chat-form button {
+    width: 30px;
+    height: 30px;
+}
 button.chat {
     background-image: url("/svg/chat.svg");
 }
