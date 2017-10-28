@@ -59,7 +59,7 @@ var viewStream = (user) => {
 }
 const Streams = {
     // draw this manually for performance reasons
-    view: ()=>  m("div#streamGrid", {subtree: "retain"})
+    view: ()=>m("div#streamGrid", {subtree: "retain"})
 }
 const Upload = {
     view: ()=>[
