@@ -14,7 +14,7 @@ body {
     border: none;
     vertical-align: bottom;
 }
-#chat input, nav input,
+#chat input, nav input, #settings input,
 #chat textarea, nav textarea {
     border: none;
     border-radius: 0;
@@ -118,6 +118,7 @@ form[name=login] {
 }
 #settings td * {
     width: 100%;
+    padding-right: 3px;
 }
 
 

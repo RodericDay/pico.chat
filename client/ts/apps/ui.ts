@@ -5,6 +5,7 @@ const UserStrings = {
     introMessage:
         "**Tip**: Address users privately with `@`, and link to other channels with `#`.",
 }
+const hiddenSettings = new Set(["username", "channel", "settingsOn", "chatOn"]);
 let state = {
     title: document.title,
     users: new Set(),
@@ -97,7 +98,7 @@ const Settings = {
         {
             onclick(e){ e.stopPropagation() },
         },
-        Object.keys(defaults).map(k=>
+        Object.keys(defaults).filter(k=>!hiddenSettings.has(k)).map(k=>
             m("tr", [
                 m("td", k),
                 m("td", opts[k]
