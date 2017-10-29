@@ -176,7 +176,8 @@ listen("login", m.redraw);
 listen("logout", m.redraw);
 listen("peerUpdate", m.redraw);
 addEventListener("socketError", (event:CustomEvent) => {
-        if(event.detail) { alert(event.detail.value) };
+        if(event.detail&&event.detail.value) { alert(event.detail.value) }
+        else { console.log(event) }
         m.redraw();
     }
 );
