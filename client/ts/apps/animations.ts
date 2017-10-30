@@ -1,9 +1,14 @@
 /*
 * todo: obviously big opportunity for abstraction and currying here
 */
+function entryTransitionOver() {
+    // avoid glitch where styles are removed an instant before node removal
+    this.removeEventListener("transitionend", entryTransitionOver);
+    this.removeAttribute("style");
+}
 function growHeight({dom:node}) {
     const {height} = node.getBoundingClientRect();
-    node.addEventListener("transitionend", () => node.style = null);
+    node.addEventListener("transitionend", entryTransitionOver);
     node.style.height = "0px";
     node.style.overflow = "hidden";
     node.style.transition = "height 500ms";
@@ -21,7 +26,7 @@ function shrinkHeight({dom:node}) {
 }
 function growWidth({dom:node}) {
     const {width} = node.getBoundingClientRect();
-    node.addEventListener("transitionend", () => node.style = null);
+    node.addEventListener("transitionend", entryTransitionOver);
     node.style.width = "0px";
     node.style.overflow = "hidden";
     node.style.transition = "width 500ms";
