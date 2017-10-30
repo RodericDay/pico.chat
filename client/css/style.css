@@ -152,10 +152,13 @@ button.post {
     background-image: url("/svg/post.svg");
 }
 button.login {
-    background-image: url("/svg/login.svg");
+    background-image: url("/svg/arrow.svg");
+    background-color: black;
 }
 button.logout {
-    background-image: url("/svg/logout.svg");
+    background-image: url("/svg/arrow.svg");
+    background-color: black;
+    transform: scaleX(-1);
 }
 button.upload {
     background-image: url("/svg/upload.svg");
