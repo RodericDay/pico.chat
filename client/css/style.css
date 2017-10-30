@@ -56,9 +56,15 @@ body {
 .streamContainer .info.loud {
     color: lime;
 }
-
+.streamContainer .info button {
+    display: none;
+}
+.streamContainer:hover .info button {
+    display: unset;
+}
 
 #chat {
+    max-width: 100vw;
     background-color: gray;
     font-family: sans-serif;
     font-size: small;

@@ -37,25 +37,30 @@ function onPeerVolume(e:CustomEvent) {
     if(div) isLoud ? div.classList.add("loud") : div.classList.remove("loud");
 }
 function onStream(user) {
-    const root = document.querySelector("#streamGrid");
-    m.render(root, Object.keys(peerStreams).sort().map(viewStream));
+    renderStreams();
     if(user===settings.username&&peerStreams[user]) detectAudio(peerStreams[user]);
 }
+function renderStreams() {
+    const root = document.querySelector("#streamGrid");
+    m.render(root, Object.keys(peerStreams).sort().map(viewStream));
+}
 var viewStream = (user) => {
+    const stream = peerStreams[user];
     const attributes = {
-        style: {
-            filter: settings.videoFilter,
-            transform: settings.videoTransform,
-        },
+        style: {transform: "scaleX(-1)"},
         playsinline: true,
         autoplay: true,
         controls: settings.controls,
         muted: user === settings.username,
-        srcObject: peerStreams[user],
+        srcObject: stream,
     }
-    return m(`div.streamContainer.${user}`,
-        m("video", attributes),
-        m("div.info", user),
+    const vnode = <any>m("video", attributes);
+    const flip = () => vnode.dom.style.transform = vnode.dom.style.transform ? "" : "scaleX(-1)";
+    return m(`div.streamContainer.${user}`, {key: user},
+        vnode,
+        m("div.info", user, [
+            m("button.flip", {onclick: flip}, "flip"),
+        ]),
     )
 }
 const Streams = {
@@ -89,33 +94,36 @@ const Chat = {
     ])
 }
 const Settings = {
-    view: ()=> m("div.centered-overlay",
-        {
-            onclick(e){ settings.settingsOn=false },
-        },
-        [
-        m("table#settings",
-        {
-            onclick(e){ e.stopPropagation() },
-        },
-        Object.keys(defaults).filter(k=>!hiddenSettings.has(k)).map(k=>
-            m("tr", [
-                m("td", k),
-                m("td", opts[k]
-                ? m("select", {
-                        onchange(e){ settings[k] = JSON.parse(e.target.value) },
-                        value: JSON.stringify(settings[k]),
-                    },
-                    [defaults[k], ...opts[k]].map(o => m("option", JSON.stringify(o)))
-                    )
-                : m("input", {
-                        onchange: (e) => settings[k] = JSON.parse(e.target.value),
-                        value: JSON.stringify(settings[k]),
-                    })
-                )
-            ]),
-        )),
-    ])
+    hide(e) {settings.settingsOn=false},
+    keep(e) {e.stopPropagation()},
+    listOptions(k) {
+        return [defaults[k], ...opts[k]].map(o => m("option", JSON.stringify(o)))
+    },
+    visibleFields() {
+        return Object.keys(defaults).filter(k=>!hiddenSettings.has(k))
+    },
+    renderField(k) {
+        const attrs = {
+            value: JSON.stringify(settings[k]),
+            onchange(e){
+                settings[k] = JSON.parse(e.target.value);
+                renderStreams();
+            },
+        }
+        return opts[k]
+            ? m("select", attrs, this.listOptions(k))
+            : m("input", attrs)
+    },
+    view() {
+        return m("div.centered-overlay", {onclick: this.hide},
+            m("table#settings", {onclick: this.keep}, this.visibleFields().map(k=>
+                m("tr", [
+                    m("td", k),
+                    m("td", this.renderField(k)),
+                ]),
+            )),
+        )
+    }
 }
 const Actions = {
     oncreate: growWidth,

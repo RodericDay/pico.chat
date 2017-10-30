@@ -146,7 +146,6 @@ async function streamingStart() {
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
             }
             catch(error) {
-                wire("post", `Failed to set ${JSON.stringify(constraints)} with error ${JSON.stringify(error)}`);
                 console.log("Adjusting settings for iPhone");
                 constraints.video.width.ideal = 352; // x 288
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -155,6 +154,7 @@ async function streamingStart() {
             signal("onStream", wsUser);
         }
         catch(error) {
+            wire("post", `Failed to set ${JSON.stringify(constraints)} with error ${JSON.stringify(error)}`);
             alert(`Cannot start stream because ${error.message}`);
             return streamingStop();
         }
@@ -179,15 +179,11 @@ let defaults = {
     controls: false,
     audio: true,
     video: {width: {ideal: 320}, facingMode: "user"},
-    videoFilter: "none",
-    videoTransform: "scaleX(-1)",
 }
 const opts = {
     audio: [false],
     controls: [true],
     video: [true, false, {mediaSource: 'screen'}, {mediaSource: 'window'}],
-    videoFilter: ["invert(1)", "grayscale(1)", "sepia(1)", "blur(3px)"],
-    videoTransform: ["none"],
 }
 const stevedore = {
     set: (obj, prop, value) => {
