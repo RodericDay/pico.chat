@@ -3,7 +3,7 @@ defaults["settingsOn"] = false;
 const UserStrings = {
     largeFile: "You are uploading a large file. This may disrupt your connection. Proceed?",
     introMessage:
-        "**Tip**: Address users privately with `@`, and link to other channels with `#`.",
+        "**Tip**: Address users privately with `@`, and link to other channels with `#`. Made by [roderic](https://roderic.ca).",
 }
 const hiddenSettings = new Set(["username", "channel", "settingsOn", "chatOn"]);
 let state = {
