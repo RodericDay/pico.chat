@@ -174,7 +174,7 @@ async function streamingStop() {
 let defaults = {
     username: "",
     channel: location.hash,
-    wsUrl: "wss://permanentsignal.com/ws/",
+    wsUrl: `wss://${location.host}/ws/`,
     iceServers: [],
     controls: false,
     audio: true,
